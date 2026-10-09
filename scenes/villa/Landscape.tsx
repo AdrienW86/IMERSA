@@ -89,7 +89,6 @@ export function Landscape() {
     const merged = mergeGeometries([
       hedgeGeometry(3.6).applyMatrix4(new Matrix4().setPosition(-15.55, 0.42, 7.2)),
       hedgeGeometry(3.2).applyMatrix4(new Matrix4().setPosition(-15.55, 0.42, -10.2)),
-      hedgeGeometry(2.4).applyMatrix4(new Matrix4().makeRotationY(Math.PI / 2).setPosition(-12.6, 0.42, 8.6)),
     ]);
     if (!merged) throw new Error("Géométrie de végétation invalide");
     return merged;

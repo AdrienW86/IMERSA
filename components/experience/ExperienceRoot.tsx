@@ -80,7 +80,10 @@ export function ExperienceRoot({ sectionId }: { sectionId: string }) {
       experienceStore.setState({ status: "running" });
       // Diagnostic : ?p=0.42 ouvre directement le parcours à cette progression.
       const start = Number(new URLSearchParams(window.location.search).get("p"));
+      const { target } = experienceStore.getState();
       if (start > 0 && start <= 1) requestJump(start);
+      // Rechargement en milieu de parcours : raccord masqué plutôt qu'un travelling accéléré.
+      else if (target > 0.02) requestJump(target, "motion");
     }
   }, [villaReady]);
 
@@ -98,9 +101,14 @@ export function ExperienceRoot({ sectionId }: { sectionId: string }) {
         onRefresh: (self) => experienceStore.setState({ target: self.progress }),
       });
       registerJourneyTrigger(trigger);
-      const observer = new IntersectionObserver(([entry]) =>
-        experienceStore.setState({ inView: entry.isIntersecting }),
-      );
+      const observer = new IntersectionObserver(([entry]) => {
+        experienceStore.setState({ inView: entry.isIntersecting });
+        // Retour dans l'expérience loin de la dernière position : raccord masqué.
+        const { target, progress, status: current } = experienceStore.getState();
+        if (entry.isIntersecting && current === "running" && Math.abs(target - progress) > 0.08) {
+          requestJump(target, "motion");
+        }
+      });
       observer.observe(section);
       return () => {
         observer.disconnect();
@@ -114,7 +122,7 @@ export function ExperienceRoot({ sectionId }: { sectionId: string }) {
   // Le parcours est verrouillé en haut de page pendant le chargement initial.
   useEffect(() => {
     if (status !== "loading" && status !== "detecting") return;
-    if (window.scrollY > 0) return;
+    if (window.scrollY > 0 || window.location.hash) return;
     document.documentElement.classList.add("is-loading");
     return () => document.documentElement.classList.remove("is-loading");
   }, [status]);

@@ -13,6 +13,8 @@ interface PassageProps {
   material: Material;
   /** Couleur du filet lumineux qui guide le regard dans la pénombre. */
   glow?: string;
+  /** Ferme l'extrémité du passage (côté -Z) : la suite du parcours reste dans l'ombre. */
+  closed?: boolean;
 }
 
 /**
@@ -27,13 +29,15 @@ export function Passage({
   length = 6,
   material,
   glow = "#ffd9a8",
+  closed = false,
 }: PassageProps) {
-  const [floor, wall, ceiling, strip] = useDisposable(
+  const [floor, wall, ceiling, strip, end] = useDisposable(
     () => [
       slab(width + 0.4, 0.1, length),
       slab(0.2, height, length),
       slab(width + 0.4, 0.2, length),
       slab(0.02, 0.012, length * 0.96),
+      slab(width + 0.4, height + 0.2, 0.1),
     ],
     [width, height, length],
   );
@@ -50,6 +54,11 @@ export function Passage({
       <mesh geometry={strip} position={[width / 2 - 0.03, 0.03, 0]}>
         <meshBasicMaterial color={glow} toneMapped={false} />
       </mesh>
+      {closed && (
+        <mesh geometry={end} position={[0, height / 2, -length / 2]}>
+          <meshBasicMaterial color="#060607" />
+        </mesh>
+      )}
     </group>
   );
 }

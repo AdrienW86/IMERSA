@@ -53,11 +53,11 @@ function useLoftMaterials() {
 
   return useDisposable(() => {
     return {
-      brick: new MeshStandardMaterial({ ...brick, color: new Color("#c9b9ae"), roughness: 1 }),
+      brick: new MeshStandardMaterial({ ...brick, color: new Color("#b9a79c"), roughness: 1 }),
       floor: new MeshPhysicalMaterial({
         map: concrete.map,
         normalMap: concrete.normalMap,
-        color: new Color("#9a948d"),
+        color: new Color("#7d7771"),
         roughness: 0.5,
         normalScale: new Vector2(0.1, 0.1),
         clearcoat: 0.25,
@@ -265,6 +265,7 @@ function Pendants({ m }: { m: LoftMaterials }) {
 }
 
 const SOFA_POSITION: [number, number, number] = [-5.5, 0, 3.7];
+const LEATHER_TINT = { "fabric Mystere Mango Velvet": { color: "#6b4630", sheenColor: "#c79a72", roughness: 0.55 } };
 
 export default function LoftScene({ settings }: SceneProps) {
   const m = useLoftMaterials();
@@ -318,7 +319,15 @@ export default function LoftScene({ settings }: SceneProps) {
       <mesh position={[-3.9, 0.2, 3.6]} castShadow receiveShadow material={m.walls}>
         <boxGeometry args={[0.9, 0.4, 1.4]} />
       </mesh>
+      {[-7.4, -4.6].flatMap((z) => [
+        <Model key={`w${z}`} url="/models/sheen-chair.glb" tints={LEATHER_TINT} position={[4.25, 0, z]} rotation-y={Math.PI / 2} />,
+        <Model key={`e${z}`} url="/models/sheen-chair.glb" tints={LEATHER_TINT} position={[6.15, 0, z]} rotation-y={-Math.PI / 2} />,
+      ])}
+      <mesh material={m.rug} position={[5.2, 0.006, -6]} receiveShadow>
+        <boxGeometry args={[3.2, 0.012, 5.6]} />
+      </mesh>
       <Model url="/models/diffuse-transmission-plant.glb" position={[6.9, 0, 5.6]} scale={2.2} rotation-y={0.6} />
+      <Model url="/models/diffuse-transmission-plant.glb" position={[-7.1, 0, -11.1]} scale={2.4} rotation-y={2.2} />
       <Model url="/models/diffuse-transmission-plant.glb" position={[-7.2, MEZZ.top, 0.2]} scale={1.6} />
 
       {settings.lightShafts && (
@@ -337,7 +346,7 @@ export default function LoftScene({ settings }: SceneProps) {
       )}
 
       <Passage position={[0, 0, Z1 + 3]} material={m.passage} />
-      <Passage position={[-5.6, MEZZ.top, Z0 - 3]} material={m.passage} />
+      <Passage position={[-5.6, MEZZ.top, Z0 - 3]} material={m.passage} closed />
     </group>
   );
 }

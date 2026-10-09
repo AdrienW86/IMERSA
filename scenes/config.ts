@@ -75,8 +75,12 @@ export const sceneDefinitions: readonly SceneDefinition[] = [
     },
     exit: { kind: "threshold", halfWidth: 0.022, veil: "#07080a", veilPeak: 1 },
     assets: {
-      models: ["/models/sheen-wood-leather-sofa.glb", "/models/diffuse-transmission-plant.glb"],
-      textures: ["brick", "concrete", "oak"],
+      models: [
+        "/models/sheen-wood-leather-sofa.glb",
+        "/models/sheen-chair.glb",
+        "/models/diffuse-transmission-plant.glb",
+      ],
+      textures: ["brick", "concrete", "oak", "facade"],
     },
   },
   {

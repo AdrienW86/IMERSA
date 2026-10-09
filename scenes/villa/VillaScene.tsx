@@ -117,6 +117,7 @@ export function VillaContent({ settings, model = false }: SceneProps & { model?:
             height={EXIT_DOOR.height}
             length={6}
             material={m.darkWood}
+            closed
           />
         </>
       )}
