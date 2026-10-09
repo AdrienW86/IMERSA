@@ -4,10 +4,9 @@ import { narrative } from "@/content/narrative";
 
 const posters: Record<string, string> = {
   hero: "/images/journey-villa.webp",
-  loft: "/images/journey-loft.webp",
-  penthouse: "/images/journey-penthouse.webp",
+  gite: "/images/journey-gite.webp",
   chateau: "/images/journey-chateau.webp",
-  reveal: "/images/journey-reveal.webp",
+  finale: "/images/journey-finale.webp",
 };
 
 /**

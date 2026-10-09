@@ -1,4 +1,4 @@
-export type SceneId = "villa" | "loft" | "penthouse" | "chateau" | "reveal";
+export type SceneId = "villa" | "gite" | "chateau" | "finale";
 
 export type Vec3 = readonly [number, number, number];
 
@@ -14,6 +14,8 @@ export interface CameraKeyframe {
   fov?: number;
   /** Point d'arrêt lisible en mode « mouvements réduits ». */
   stop?: boolean;
+  /** Vitesse nulle au passage (temps suspendu sur l'objet repère d'un raccord). */
+  still?: boolean;
 }
 
 /** Éclairage global appliqué au rig de lumières pendant une séquence. */
@@ -33,7 +35,7 @@ export interface PracticalLight {
   distance: number;
 }
 
-export type TransitionKind = "threshold" | "light" | "dissolve";
+export type TransitionKind = "threshold" | "light" | "dissolve" | "match";
 
 export interface SceneTransition {
   kind: TransitionKind;
@@ -43,6 +45,8 @@ export interface SceneTransition {
   veil: string;
   /** Opacité maximale du voile au point de bascule. */
   veilPeak: number;
+  /** Raccord sur objet : repère dans la scène quittée et dans la scène suivante. */
+  match?: { cut: "verre" | "flamme" | "rideau"; from: Vec3; to: Vec3 };
 }
 
 export interface SceneDefinition {

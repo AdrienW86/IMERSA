@@ -9,17 +9,19 @@ export type TextureSetName =
   | "oak"
   | "travertine"
   | "concrete"
-  | "brick"
   | "marble-white"
   | "marble-black"
   | "marble-warm"
   | "plaster"
-  | "facade";
+  | "stone"
+  | "terracotta"
+  | "oldwood"
+  | "linen"
+  | "boucle";
 
 export const textureUrls = (name: TextureSetName) => {
   const base = `/textures/${name}`;
   const urls = [`${base}_albedo.webp`, `${base}_rough.webp`, `${base}_normal.webp`];
-  if (name === "facade") urls.push(`${base}_emissive.webp`);
   return urls;
 };
 

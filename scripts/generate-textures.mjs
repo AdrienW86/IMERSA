@@ -249,45 +249,6 @@ function concrete(size) {
   return m;
 }
 
-/** Brique ancienne en appareil panneresse, joints creux. */
-function brick(size) {
-  const m = makeMaps(size);
-  const rows = 16;
-  const cols = 4;
-  const rnd = mulberry32(41);
-  const tones = Array.from({ length: rows * cols * 2 }, () => rnd());
-  const red = hex("#7d3e2a");
-  const brown = hex("#5a2f22");
-  const ochre = hex("#9b6243");
-  const mortar = hex("#a39a8c");
-  forEachPixel(size, (_x, _y, u, v, i) => {
-    const row = Math.floor(v * rows);
-    const rv = v * rows - row;
-    const shift = row % 2 === 0 ? 0 : 0.5 / cols;
-    const cu = mod(u + shift, 1) * cols;
-    const col = Math.floor(cu);
-    const ru = cu - col;
-    const id = row * cols + col;
-    const tone = tones[id];
-    const n = fbm(u, v, 8, 5, 42) * 0.5 + 0.5;
-    const soot = smooth(0.45, 0.8, fbm(u, v, 3, 4, 43) * 0.5 + 0.5);
-    let c = mix3(brown, red, tone);
-    c = mix3(c, ochre, smooth(0.6, 1, n) * 0.5);
-    c = mix3(c, mix3(c, [0.08, 0.06, 0.05], 0.5), soot * 0.45);
-    const ex = Math.min(ru, 1 - ru) / cols;
-    const ey = Math.min(rv, 1 - rv) / rows;
-    const e = (Math.min(ex * 4, ey) * size) / 4;
-    const chip = fbm(u, v, 64, 3, 44) * 1.5;
-    const brickMask = smooth(1.2, 2.6, e + chip);
-    const mt = fbm(u, v, 64, 2, 45) * 0.1;
-    const fc = mix3(mix3(mortar, [0.4, 0.38, 0.35], 0.3 + mt), c, brickMask);
-    m.albedo.set(fc, i * 3);
-    m.rough[i] = clamp01(0.82 + (1 - brickMask) * 0.12 - n * 0.08);
-    m.height[i] = brickMask * 0.35 + n * 0.03 * brickMask;
-  });
-  return m;
-}
-
 /** Marbre à veines (domain warping). */
 function marble(size, { base, vein, veinStrength, seed, scale = 2 }) {
   const m = makeMaps(size);
@@ -326,37 +287,144 @@ function plaster(size) {
   return m;
 }
 
-/** Façade de tour vitrée : trame, vitrages et fenêtres éclairées. */
-function facade(size) {
-  const m = makeMaps(size);
-  m.emissive = new Float32Array(size * size * 3);
-  const floors = 32;
-  const bays = 16;
-  const rnd = mulberry32(61);
-  const lit = Array.from({ length: floors * bays }, () => rnd());
-  const warmth = Array.from({ length: floors * bays }, () => rnd());
-  const frame = hex("#2b2d31");
-  const glass = hex("#141a22");
-  forEachPixel(size, (_x, _y, u, v, i) => {
-    const fy = v * floors;
-    const bx = u * bays;
-    const floor = Math.floor(fy);
-    const bay = Math.floor(bx);
-    const ly = fy - floor;
-    const lx = bx - bay;
-    const isGlass = ly > 0.18 && ly < 0.94 && lx > 0.08 && lx < 0.92;
-    const id = floor * bays + bay;
-    const n = fbm(u, v, 8, 3, 62) * 0.5 + 0.5;
-    const c = isGlass ? mix3(glass, [0.2, 0.25, 0.32], n * 0.4 + ly * 0.2) : frame;
-    m.albedo.set(c, i * 3);
-    m.rough[i] = isGlass ? 0.08 : 0.6;
-    m.height[i] = isGlass ? 0 : 0.3;
-    if (isGlass && lit[id] > 0.72) {
-      const w = warmth[id];
-      const col = w > 0.3 ? [1, 0.78, 0.5] : [0.75, 0.85, 1];
-      const k = (0.4 + 0.6 * lit[id]) * (0.75 + 0.25 * Math.sin(ly * Math.PI));
-      m.emissive.set([col[0] * k, col[1] * k, col[2] * k], i * 3);
+/** Voronoï périodique : distance aux deux germes les plus proches. */
+function voronoi(u, v, cells, seed, stretch = 1) {
+  const x = u * cells;
+  const y = v * cells;
+  const cx = Math.floor(x);
+  const cy = Math.floor(y);
+  let d1 = 1e9;
+  let d2 = 1e9;
+  let id = 0;
+  for (let j = -2; j <= 2; j++) {
+    for (let i = -2; i <= 2; i++) {
+      const gx = cx + i;
+      const gy = cy + j;
+      const wx = mod(gx, cells);
+      const wy = mod(gy, cells);
+      const px = gx + 0.15 + 0.7 * hash2(wx, wy, seed);
+      const py = gy + 0.15 + 0.7 * hash2(wx, wy, seed + 17);
+      const dx = (px - x) * stretch;
+      const dy = py - y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < d1) {
+        d2 = d1;
+        d1 = d;
+        id = wy * cells + wx;
+      } else if (d < d2) d2 = d;
     }
+  }
+  return { edge: d2 - d1, id };
+}
+
+/** Mur de pierre provençal : moellons irréguliers, joints à la chaux. */
+function stone(size) {
+  const m = makeMaps(size);
+  const tones = ["#c4a983", "#a98d6b", "#d3bf9b", "#9a8166", "#bba07a", "#8f7c66", "#cdb895", "#b39472"].map(hex);
+  const mortar = hex("#cfc3ad");
+  forEachPixel(size, (_x, _y, u, v, i) => {
+    const w = fbm(u, v, 4, 3, 101) * 0.05;
+    const { edge, id } = voronoi(mod(u + w, 1), mod(v + w * 0.7, 1), 8, 102, 0.42);
+    const tone = tones[id % tones.length];
+    const n = fbm(u, v, 16, 5, 103) * 0.5 + 0.5;
+    const pits = smooth(0.62, 0.75, fbm(u, v, 48, 2, 104) * 0.5 + 0.5);
+    const face = smooth(0.02, 0.09, edge + (n - 0.5) * 0.04);
+    const bulge = smooth(0.0, 0.35, edge);
+    const grainy = fbm(u, v, 96, 2, 107) * 0.5 + 0.5;
+    let c = mix3(tone, mix3(tone, [0.05, 0.04, 0.03], 0.45), (1 - n) * 0.55 + pits * 0.3 + (1 - grainy) * 0.15);
+    c = mix3(c, mix3(c, [1, 0.97, 0.9], 0.3), bulge * 0.25);
+    const lichen = smooth(0.7, 0.85, fbm(u, v, 6, 3, 105) * 0.5 + 0.5) * 0.25;
+    c = mix3(c, hex("#8a8a64"), lichen);
+    const mort = mix3(mortar, mix3(mortar, [0.12, 0.1, 0.08], 0.75), fbm(u, v, 64, 2, 106) * 0.4 + 0.45);
+    const ao = smooth(0.0, 0.2, edge);
+    const col = mix3(mort, c, face);
+    const shade = 0.72 + 0.28 * ao;
+    m.albedo.set([col[0] * shade, col[1] * shade, col[2] * shade], i * 3);
+    m.rough[i] = clamp01(0.88 + (1 - face) * 0.08);
+    m.height[i] = face * 0.5 + bulge * 0.45 + n * 0.1 - pits * 0.06;
+  });
+  return m;
+}
+
+/** Tomettes carrées en terre cuite, patinées. */
+function terracotta(size) {
+  const m = makeMaps(size);
+  const n = 4;
+  const rnd = mulberry32(201);
+  const tones = Array.from({ length: n * n }, () => rnd());
+  const light = hex("#c98a5e");
+  const dark = hex("#8f4a2e");
+  forEachPixel(size, (_x, _y, u, v, i) => {
+    const cx = Math.floor(u * n);
+    const cy = Math.floor(v * n);
+    const lx = u * n - cx;
+    const ly = v * n - cy;
+    const t = tones[cy * n + cx];
+    const chip = fbm(u, v, 32, 3, 202) * 0.06;
+    const edge = Math.min(lx, 1 - lx, ly, 1 - ly) + chip;
+    const tile = smooth(0.012, 0.035, edge);
+    const cloud = fbm(u, v, 8, 5, 203) * 0.5 + 0.5;
+    const wear = smooth(0.55, 0.8, fbm(u, v, 3, 4, 204) * 0.5 + 0.5);
+    let c = mix3(dark, light, clamp01(t * 0.7 + cloud * 0.4 - 0.1));
+    c = mix3(c, hex("#d9b48e"), wear * 0.35);
+    const grout = hex("#7a6a58");
+    m.albedo.set(mix3(grout, c, tile), i * 3);
+    m.rough[i] = clamp01(0.55 + (1 - wear) * 0.25 + (1 - tile) * 0.2 - cloud * 0.1);
+    m.height[i] = tile * 0.3 + cloud * 0.01;
+  });
+  return m;
+}
+
+/** Vieux chêne de charpente : fil marqué, fentes de séchage. */
+function oldwood(size) {
+  const m = makeMaps(size);
+  const light = hex("#6b4a33");
+  const dark = hex("#2e1f16");
+  forEachPixel(size, (_x, _y, u, v, i) => {
+    const warp = fbm(u, v, 1, 3, 301) * 0.5 + fbm(u, v, 2, 2, 305) * 0.15;
+    const grain = Math.pow(Math.sin((v * 34 + warp * 4) * Math.PI) * 0.5 + 0.5, 2);
+    const fine = fbm(u * 0.1, v * 8, 128, 3, 302) * 0.5 + 0.5;
+    const crack = smooth(0.985, 1, Math.sin((v * 7 + fbm(u, v, 3, 3, 303) * 2) * Math.PI * 2) * 0.5 + 0.5)
+      * smooth(0.45, 0.6, fbm(u, v, 2, 2, 304) * 0.5 + 0.5);
+    const t = clamp01(0.35 + grain * 0.3 + (fine - 0.5) * 0.4);
+    const c = mix3(dark, light, t);
+    const k = 1 - crack * 0.85;
+    m.albedo.set([c[0] * k, c[1] * k, c[2] * k], i * 3);
+    m.rough[i] = clamp01(0.8 + (1 - t) * 0.12);
+    m.height[i] = grain * 0.02 + fine * 0.02 - crack * 0.4;
+  });
+  return m;
+}
+
+/** Toile de lin : trame fine, irrégularités de fil. */
+function linen(size) {
+  const m = makeMaps(size);
+  const base = hex("#e8dfd1");
+  forEachPixel(size, (x, y, u, v, i) => {
+    const warp = Math.sin((x / size) * Math.PI * 2 * 160 + fbm(u, v, 8, 2, 401) * 2) * 0.5 + 0.5;
+    const weft = Math.sin((y / size) * Math.PI * 2 * 160 + fbm(u, v, 8, 2, 402) * 2) * 0.5 + 0.5;
+    const slub = fbm(u * 0.05, v, 64, 2, 403) * 0.5 + 0.5;
+    const weave = (x + y) % 2 ? warp : weft;
+    const c = mix3(base, hex("#cfc3b0"), slub * 0.5 + (1 - weave) * 0.15);
+    m.albedo.set(c, i * 3);
+    m.rough[i] = 0.92;
+    m.height[i] = weave * 0.08 + slub * 0.03;
+  });
+  return m;
+}
+
+/** Bouclette (bouclé) : boucles de laine serrées. */
+function boucle(size) {
+  const m = makeMaps(size);
+  const base = hex("#efe7da");
+  forEachPixel(size, (_x, _y, u, v, i) => {
+    const { edge } = voronoi(u, v, 90, 501);
+    const loops = smooth(0.0, 0.35, edge);
+    const tone = fbm(u, v, 8, 3, 502) * 0.5 + 0.5;
+    const c = mix3(hex("#d6cab8"), base, loops * 0.7 + tone * 0.3);
+    m.albedo.set(c, i * 3);
+    m.rough[i] = 0.95;
+    m.height[i] = loops * 0.25;
   });
   return m;
 }
@@ -365,7 +433,11 @@ const jobs = [
   ["oak", () => oak(SIZE), 6],
   ["travertine", () => travertine(SIZE), 14],
   ["concrete", () => concrete(SIZE), 30],
-  ["brick", () => brick(SIZE), 6],
+  ["stone", () => stone(SIZE), 8],
+  ["terracotta", () => terracotta(SIZE), 6],
+  ["oldwood", () => oldwood(SIZE), 6],
+  ["linen", () => linen(SIZE), 3],
+  ["boucle", () => boucle(SIZE), 6],
   [
     "marble-white",
     () => marble(SIZE, { base: "#eeebe6", vein: "#7d7a78", veinStrength: 0.85, seed: 71 }),
@@ -382,12 +454,11 @@ const jobs = [
     1,
   ],
   ["plaster", () => plaster(SIZE), 30],
-  ["facade", () => facade(512), 1],
 ];
 
 const only = process.argv[3];
 for (const [name, fn, normalStrength] of jobs) {
   if (only && only !== name) continue;
-  const res = name === "facade" ? 512 : SIZE;
+  const res = SIZE;
   await save(name, fn(), res, normalStrength);
 }

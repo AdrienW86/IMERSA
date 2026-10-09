@@ -34,13 +34,19 @@ function fbm(x: number, y: number, octaves = 5) {
  * Promontoire côtier : relief bruité modelé par un masque elliptique,
  * coloré du maquis (vert olive) à la roche claire.
  */
-function headland(width: number, depth: number, height: number, seed: number) {
+export function headland(
+  width: number,
+  depth: number,
+  height: number,
+  seed: number,
+  palette: [string, string, string] = ["#5d6a3c", "#a39466", "#c9b99a"],
+) {
   const geo = new PlaneGeometry(width, depth, 120, 60).rotateX(-Math.PI / 2);
   const pos = geo.getAttribute("position");
   const colors = new Float32Array(pos.count * 3);
-  const scrub = new Color("#5d6a3c");
-  const dry = new Color("#a39466");
-  const rock = new Color("#c9b99a");
+  const scrub = new Color(palette[0]);
+  const dry = new Color(palette[1]);
+  const rock = new Color(palette[2]);
   const c = new Color();
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
@@ -97,12 +103,14 @@ export function Landscape() {
   return (
     <group>
       <SkyDome
-        top="#2f6aac"
-        horizon="#ecd2ae"
-        bottom="#6f97b5"
+        top="#4a6f9c"
+        horizon="#f4b47c"
+        bottom="#8aa0b4"
         sunDirection={SUN_DIRECTION}
-        sunColor="#ffd7a0"
-        sunStrength={1.2}
+        sunColor="#ffb06a"
+        sunFocus={900}
+        sunStrength={1.6}
+        gradient={0.4}
       />
       <Water
         width={8000}

@@ -10,13 +10,11 @@ export interface QualitySettings {
   multisampling: number;
   /** Sonde de réflexion temps réel (miroirs, dorures, marbres polis). */
   reflectionProbe: number;
-  /** Matériaux à transmission (verre réfractif) : passe de rendu supplémentaire. */
-  transmission: boolean;
   /** Rayons de lumière volumétriques simulés. */
   lightShafts: boolean;
   particles: number;
-  cityBlocks: number;
-  pointCloud: number;
+  /** Intensité de la profondeur de champ (0 : désactivée). */
+  depthOfField: number;
   /** Facteur appliqué à l'anisotropie des textures. */
   anisotropy: number;
 }
@@ -28,12 +26,10 @@ export const qualityPresets: Record<QualityTier, QualitySettings> = {
     shadowMapSize: 2048,
     postprocessing: true,
     multisampling: 4,
-    reflectionProbe: 512,
-    transmission: true,
+    reflectionProbe: 384,
     lightShafts: true,
     particles: 260,
-    cityBlocks: 1400,
-    pointCloud: 60000,
+    depthOfField: 1,
     anisotropy: 8,
   },
   medium: {
@@ -43,11 +39,9 @@ export const qualityPresets: Record<QualityTier, QualitySettings> = {
     postprocessing: true,
     multisampling: 2,
     reflectionProbe: 256,
-    transmission: false,
     lightShafts: true,
     particles: 140,
-    cityBlocks: 900,
-    pointCloud: 32000,
+    depthOfField: 0.8,
     anisotropy: 4,
   },
   low: {
@@ -57,11 +51,9 @@ export const qualityPresets: Record<QualityTier, QualitySettings> = {
     postprocessing: false,
     multisampling: 0,
     reflectionProbe: 128,
-    transmission: false,
     lightShafts: false,
     particles: 60,
-    cityBlocks: 500,
-    pointCloud: 16000,
+    depthOfField: 0,
     anisotropy: 2,
   },
 };

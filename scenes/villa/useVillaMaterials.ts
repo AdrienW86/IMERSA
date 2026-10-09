@@ -4,24 +4,32 @@ import { usePbrTextures } from "@/hooks/usePbrTextures";
 
 /** Palette de matériaux nobles de la villa : béton ciré, travertin, chêne, enduit. */
 export function useVillaMaterials() {
-  const concrete = usePbrTextures("concrete", 3.2);
   const travertine = usePbrTextures("travertine", 2.4);
   const oak = usePbrTextures("oak", 1.4);
   const oakVertical = usePbrTextures("oak", 1.4, Math.PI / 2);
   const plaster = usePbrTextures("plaster", 2.5);
+  const boucle = usePbrTextures("boucle", 0.6);
+  const linen = usePbrTextures("linen", 0.8);
+  const travertineFloor = usePbrTextures("marble-warm", 2.2);
 
   return useDisposable(() => {
     // Béton ciré : satiné uniforme, le relief vient de la texture et du vernis.
+    // Sol en pierre calcaire adoucie : teinte miel, léger lustre.
     const floor = new MeshPhysicalMaterial({
-      map: concrete.map,
-      normalMap: concrete.normalMap,
-      color: new Color("#efe2cf"),
-      roughness: 0.62,
-      normalScale: new Vector2(0.1, 0.1),
-      clearcoat: 0.12,
-      clearcoatRoughness: 0.4,
-      envMapIntensity: 0.55,
+      map: travertineFloor.map,
+      normalMap: travertineFloor.normalMap,
+      roughnessMap: travertineFloor.roughnessMap,
+      color: new Color("#f3e4cf"),
+      roughness: 0.9,
+      normalScale: new Vector2(0.35, 0.35),
+      clearcoat: 0.25,
+      clearcoatRoughness: 0.3,
+      envMapIntensity: 0.6,
     });
+    const fabric = new MeshStandardMaterial({ ...boucle, color: new Color("#f3ebde"), roughness: 1 });
+    const linenFabric = new MeshStandardMaterial({ ...linen, color: new Color("#e9dcc8"), roughness: 1 });
+    const ceramicDark = new MeshStandardMaterial({ color: new Color("#2a2724"), roughness: 0.4 });
+    const chairSeat = new MeshStandardMaterial({ ...linen, color: new Color("#c9b49a"), roughness: 1 });
     const stone = new MeshStandardMaterial({ ...travertine, color: new Color("#fbf3e6"), roughness: 1 });
     const stoneOutdoor = new MeshStandardMaterial({ ...travertine, color: new Color("#f3e9da"), roughness: 1 });
     const wood = new MeshStandardMaterial({ ...oak, color: new Color("#f0dcc4"), roughness: 0.9 });
@@ -40,15 +48,30 @@ export function useVillaMaterials() {
       envMapIntensity: 1.6,
     });
     const acoustic = new MeshStandardMaterial({ color: new Color("#1a1715"), roughness: 1 });
-    const rug = new MeshStandardMaterial({
-      normalMap: plaster.normalMap,
-      color: new Color("#cdbfa9"),
-      roughness: 1,
-    });
+    const rug = new MeshStandardMaterial({ ...linen, color: new Color("#d8c9b2"), roughness: 1 });
     const poolTile = new MeshStandardMaterial({ color: new Color("#7fc3c9"), roughness: 0.35 });
     const ember = new MeshStandardMaterial({ color: new Color("#2a2522"), roughness: 1 });
-    return { floor, stone, stoneOutdoor, wood, woodPanel, darkWood, walls, steel, brass, glass, acoustic, rug, poolTile, ember };
-  }, [concrete, travertine, oak, oakVertical, plaster]);
+    return {
+      floor,
+      stone,
+      stoneOutdoor,
+      wood,
+      woodPanel,
+      darkWood,
+      walls,
+      steel,
+      brass,
+      glass,
+      acoustic,
+      rug,
+      poolTile,
+      ember,
+      fabric,
+      linenFabric,
+      ceramicDark,
+      chairSeat,
+    };
+  }, [travertine, oak, oakVertical, plaster, boucle, linen, travertineFloor]);
 }
 
 export type VillaMaterials = ReturnType<typeof useVillaMaterials>;

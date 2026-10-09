@@ -48,6 +48,7 @@ interface GlobalKey {
   position: Vector3;
   target: Vector3;
   fov: number;
+  still: boolean;
 }
 
 function buildKeys(): GlobalKey[] {
@@ -62,6 +63,7 @@ function buildKeys(): GlobalKey[] {
         position: new Vector3(k.position[0] + ox, k.position[1] + oy, k.position[2] + oz),
         target: new Vector3(k.target[0] + ox, k.target[1] + oy, k.target[2] + oz),
         fov: k.fov ?? 50,
+        still: !!k.still,
       });
     });
   }
@@ -82,7 +84,8 @@ function tangent<T extends Vector3 | number>(
   const prev = keys[Math.max(0, i - 1)];
   const next = keys[Math.min(keys.length - 1, i + 1)];
   // Départ et arrivée du parcours : vitesse nulle (mise en mouvement douce).
-  const atEdge = i === 0 || i === keys.length - 1;
+  // Raccords : temps suspendu sur l'objet repère.
+  const atEdge = i === 0 || i === keys.length - 1 || keys[i].still;
   const dt = next.time - prev.time || 1;
   const a = pick(prev);
   const b = pick(next);
@@ -324,5 +327,45 @@ export function lightingAt(p: number, out: LightingSample): LightingSample {
     }
   }
   lerpLighting(out, a.lighting, b.lighting, a.origin, b.origin, t);
+  return out;
+}
+
+/* ------------------------------------------------------------------ */
+/* Mise au point (profondeur de champ)                                 */
+/* ------------------------------------------------------------------ */
+
+/** Repères monde des raccords sur objet. */
+const matchAnchors = boundaries
+  .filter((b) => b.transition.match)
+  .map((b) => {
+    const from = scenes[b.from];
+    const m = b.transition.match!;
+    return {
+      at: b.at,
+      window: 0.045,
+      anchor: new Vector3(m.from[0] + from.origin[0], m.from[1] + from.origin[1], m.from[2] + from.origin[2]),
+    };
+  });
+
+export interface FocusState {
+  target: Vector3;
+  /** 0 : plan large ; 1 : plan macro sur l'objet repère. */
+  macro: number;
+}
+
+/**
+ * Point de netteté : la cible de visée en plan large, l'objet repère à
+ * l'approche d'un raccord (le décor se fond alors dans le flou).
+ */
+export function focusAt(p: number, lookTarget: Vector3, out: FocusState): FocusState {
+  out.target.copy(lookTarget);
+  out.macro = 0;
+  for (const a of matchAnchors) {
+    const d = Math.abs(p - a.at);
+    if (d > a.window) continue;
+    const k = 1 - smoothstep(0, a.window, d);
+    out.macro = k;
+    out.target.lerp(a.anchor, smoothstep(0, 0.35, k));
+  }
   return out;
 }

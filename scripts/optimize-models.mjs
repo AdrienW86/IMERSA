@@ -28,12 +28,12 @@ import fs from "node:fs/promises";
 const SOURCES = {
   GlamVelvetSofa: "glam-velvet-sofa",
   SheenChair: "sheen-chair",
-  SheenWoodLeatherSofa: "sheen-wood-leather-sofa",
   ChairDamaskPurplegold: "chair-damask-purplegold",
   SpecularSilkPouf: "specular-silk-pouf",
   GlassVaseFlowers: "glass-vase-flowers",
   DiffuseTransmissionPlant: "diffuse-transmission-plant",
-  GlassHurricaneCandleHolder: "glass-hurricane-candle-holder",
+  IridescentDishWithOlives: "iridescent-dish-with-olives",
+  DiffuseTransmissionTeacup: "diffuse-transmission-teacup",
 };
 
 const srcDir = process.argv[2];

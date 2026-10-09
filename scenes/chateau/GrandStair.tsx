@@ -162,7 +162,7 @@ export function GrandStair({ m }: { m: ChateauMaterials }) {
 
     // Murs du hall : façade vers la galerie (grande arcade), murs latéraux, mur du fond avec baie.
     const front = archedPanel(HW * 2 + 1, HH, 1.2, { width: GALLERY.halfWidth * 2, sill: 0, spring: GALLERY.wallHeight + 0.7 }, -0.5);
-    const back = archedPanel(HW * 2 + 1, HH, 1.2, { width: 7, sill: 5, spring: 13 });
+    const back = archedPanel(HW * 2 + 1, HH, 1.2, { width: 7, sill: 4.02, spring: 13 });
     const sides = merge([
       { geometry: slab(1, HH, HLEN), matrix: at(-HW - 0.5, HH / 2, HMID) },
       { geometry: slab(1, HH, HLEN), matrix: at(HW + 0.5, HH / 2, HMID) },
@@ -192,8 +192,8 @@ export function GrandStair({ m }: { m: ChateauMaterials }) {
       columns: merge(columns),
       capitals: merge(capitals),
       windowFrame: merge([
-        { geometry: slab(0.08, 8, 0.12), matrix: at(-1.2, 9, 0) },
-        { geometry: slab(0.08, 8, 0.12), matrix: at(1.2, 9, 0) },
+        { geometry: slab(0.08, 9, 0.12), matrix: at(-1.2, 8.5, 0) },
+        { geometry: slab(0.08, 9, 0.12), matrix: at(1.2, 8.5, 0) },
         ...[6.6, 8.2, 9.8, 11.4].map((y) => ({ geometry: slab(7, 0.07, 0.12), matrix: at(0, y, 0) })),
       ]),
     };
@@ -213,8 +213,8 @@ export function GrandStair({ m }: { m: ChateauMaterials }) {
       <mesh geometry={g.capitals} material={m.gold} castShadow />
       <group position={[0, 0, HZ1 - 0.75]}>
         <mesh geometry={g.windowFrame} material={m.gold} />
-        <group position={[0, 10.5, -0.6]}>
-          <WindowLight width={8} height={12} />
+        <group position={[0, 10, -0.6]}>
+          <WindowLight width={8} height={13} />
         </group>
       </group>
     </group>

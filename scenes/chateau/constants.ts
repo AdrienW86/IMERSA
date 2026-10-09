@@ -21,7 +21,7 @@ export const STAIR = {
   steps: 16,
   rise: 0.25,
   run: 0.5,
-  landing: { z0: -68, z1: -74, halfWidth: 10 },
+  landing: { z0: -68, z1: -84, halfWidth: 10 },
   side: { inner: 6.6, outer: 9.6 },
   upper: 8,
 } as const;
