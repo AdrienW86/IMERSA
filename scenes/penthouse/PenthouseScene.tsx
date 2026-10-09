@@ -65,7 +65,7 @@ function usePenthouseMaterials() {
       }),
       passage: new MeshStandardMaterial({ ...oak, color: new Color("#4a3a2e"), roughness: 0.7 }),
       rug: new MeshStandardMaterial({ color: new Color("#b8ab9b"), roughness: 1 }),
-      cove: new MeshStandardMaterial({ color: new Color("#000000"), emissive: new Color("#ffcf96"), emissiveIntensity: 2.4 }),
+      cove: new MeshStandardMaterial({ color: new Color("#000000"), emissive: new Color("#ffcf96"), emissiveIntensity: 3.2 }),
     }),
     [marble, plaster, oak, dark],
   );
@@ -212,7 +212,7 @@ function ArcLamp({ m }: { m: PenthouseMaterials }) {
     };
   }, []);
   return (
-    <group position={[-8.4, 0, -4.6]} rotation-y={-0.9}>
+    <group position={[4.4, 0, -1.6]} rotation-y={-2.2}>
       <mesh geometry={g.base} material={m.blackMarble} position={[0, 0.05, 0]} castShadow />
       <mesh geometry={g.arc} material={m.bronze} castShadow />
       <group position={[1.85, 1.72, 0]}>
@@ -241,21 +241,30 @@ function Furnishing({ m }: { m: PenthouseMaterials }) {
         { geometry: new SphereGeometry(0.15, 32, 20).scale(1.2, 0.6, 1), matrix: at(0.03, 0.29, 0, 0.5) },
         { geometry: new SphereGeometry(0.1, 32, 20).scale(1.2, 0.65, 1), matrix: at(-0.02, 0.42, 0, 1.2) },
       ]),
-      rug: slab(4.2, 0.012, 3.4, 0.004),
+      rug: slab(4.4, 0.012, 3.6, 0.004),
+      dining: slab(1.1, 0.05, 2.6, 0.01),
+      diningBase: slab(0.35, 0.68, 1.4, 0.01),
     }),
     [],
   );
   return (
     <group>
-      <mesh geometry={g.rug} material={m.rug} position={[-6.4, 0.006, -7.4]} receiveShadow />
-      <Model url="/models/glam-velvet-sofa.glb" tints={SOFA_TINT} position={[-6.4, 0, -5.9]} rotation-y={Math.PI} scale={1.1} />
-      <Model url="/models/sheen-chair.glb" tints={CHAIR_TINT} position={[-4.1, 0, -8.6]} rotation-y={-Math.PI / 2 - 0.55} />
-      <Model url="/models/sheen-chair.glb" tints={CHAIR_TINT} position={[-8.7, 0, -8.6]} rotation-y={Math.PI / 2 + 0.55} />
-      <Model url="/models/specular-silk-pouf.glb" tints={POUF_TINT} position={[-6.4, 0, -9.4]} />
-      <mesh geometry={g.table} material={m.blackMarble} position={[-6.4, 0.17, -7.6]} castShadow receiveShadow />
+      {/* Salon tourné vers l'angle vitré */}
+      <group position={[7, 0, -4.3]} rotation-y={-Math.PI / 4}>
+        <mesh geometry={g.rug} material={m.rug} position={[0, 0.006, 0]} receiveShadow />
+        <Model url="/models/glam-velvet-sofa.glb" tints={SOFA_TINT} position={[0, 0, 1.4]} rotation-y={Math.PI} scale={1.1} />
+        <mesh geometry={g.table} material={m.blackMarble} position={[0, 0.17, -0.2]} castShadow receiveShadow />
+        <Model url="/models/sheen-chair.glb" tints={CHAIR_TINT} position={[-1.9, 0, -0.6]} rotation-y={Math.PI / 2 + 0.4} />
+        <Model url="/models/specular-silk-pouf.glb" tints={POUF_TINT} position={[1.7, 0, -0.9]} />
+      </group>
       <ArcLamp m={m} />
 
-      <mesh geometry={g.island} material={m.blackMarble} position={[6.2, 0.475, -0.6]} castShadow receiveShadow />
+      {/* Cuisine et table de repas */}
+      <mesh geometry={g.island} material={m.blackMarble} position={[-7.3, 0.475, -0.8]} castShadow receiveShadow />
+      <mesh geometry={g.dining} material={m.oak} position={[-6.6, 0.74, -6.6]} castShadow receiveShadow />
+      <mesh geometry={g.diningBase} material={m.blackMarble} position={[-6.6, 0.36, -6.6]} castShadow />
+      <Model url="/models/sheen-chair.glb" tints={CHAIR_TINT} position={[-7.6, 0, -6.6]} rotation-y={Math.PI / 2} />
+      <Model url="/models/sheen-chair.glb" tints={CHAIR_TINT} position={[-5.6, 0, -6.6]} rotation-y={-Math.PI / 2} />
       <mesh geometry={g.plinth} material={m.walls} position={[-1.3, 0.525, -10.9]} castShadow receiveShadow />
       <mesh geometry={g.sculpture} material={m.bronze} position={[-1.3, 1.05, -10.9]} castShadow />
 
@@ -271,23 +280,24 @@ export default function PenthouseScene({ settings }: SceneProps) {
   return (
     <group>
       <SkyDome
-        top="#0c1730"
-        horizon="#c97a5a"
+        top="#14254d"
+        horizon="#94645f"
         bottom="#151a28"
         sunDirection={SUN}
         sunColor="#ff7a45"
         sunFocus={180}
         sunStrength={0.7}
+        gradient={0.22}
       />
       <StreetGrid />
       <City
         ground={STREET}
         center={[0, 0]}
-        innerRadius={80}
-        outerRadius={1700}
+        innerRadius={70}
+        outerRadius={1800}
         count={settings.cityBlocks}
-        minHeight={30}
-        maxHeight={170}
+        minHeight={18}
+        maxHeight={96}
         sunDirection={SUN}
         sunColor="#ff9c6a"
         ambient="#28324a"

@@ -49,7 +49,7 @@ const SOFA_TINT = { GlamVelvetSofa_fabric_navy: { color: "#b8a389", sheenColor: 
 const CHAIR_TINT = { "fabric Mystere Mango Velvet": { color: "#b0532c", sheenColor: "#f0a679" } };
 const POUF_TINT = { "shot silk": { color: "#4b4f33" } };
 
-function Furnishing({ m, settings }: { m: VillaMaterials } & SceneProps) {
+function Furnishing({ m, settings, model }: { m: VillaMaterials; model: boolean } & SceneProps) {
   const pieces = useDisposable(
     () => ({
       coffee: slab(1.4, 0.32, 0.85, 0.06),
@@ -75,12 +75,14 @@ function Furnishing({ m, settings }: { m: VillaMaterials } & SceneProps) {
 
       {/* Rangement bas et œuvre sur le mur est */}
       <mesh geometry={pieces.credenza} material={m.woodPanel} position={[ROOM.maxX - 0.26, 0.31, 2.4]} castShadow receiveShadow />
+      {!model && (
       <group position={[ROOM.maxX - 0.02, 2.05, 2.4]} rotation-y={-Math.PI / 2}>
         <mesh geometry={pieces.frame} material={m.darkWood} rotation-y={Math.PI / 2} position={[0, 0, -0.01]} />
         <group position={[0, 0, 0.02]}>
           <Artwork width={2.6} height={1.7} colors={["#c46a3c", "#e9d6b8", "#38423f"]} />
         </group>
       </group>
+      )}
       {settings.transmission && (
         <Model url="/models/glass-vase-flowers.glb" position={[ROOM.maxX - 0.3, 0.62, 1.2]} scale={2} castShadow={false} />
       )}
@@ -107,7 +109,7 @@ export function VillaContent({ settings, model = false }: SceneProps & { model?:
   return (
     <group>
       <VillaArchitecture m={m} model={model} />
-      <Furnishing m={m} settings={settings} />
+      <Furnishing m={m} settings={settings} model={model} />
       {!model && (
         <>
           <Landscape />

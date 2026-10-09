@@ -97,10 +97,10 @@ export const sceneDefinitions: readonly SceneDefinition[] = [
     ],
     lighting: {
       sun: { color: "#ff9e6b", intensity: 1.6, position: [-8, 5, -40], shadowRadius: 14 },
-      hemisphere: { sky: "#6f86b3", ground: "#3a3340", intensity: 0.55 },
+      hemisphere: { sky: "#8296bf", ground: "#4a4048", intensity: 0.8 },
       practicals: [
-        { position: [-6.2, 2.4, -7.2], color: "#ffcf9a", intensity: 4, distance: 6 },
-        { position: [6, 2.8, -0.5], color: "#ffd6a8", intensity: 4, distance: 7 },
+        { position: [-6.4, 2.5, -4], color: "#ffcf9a", intensity: 9, distance: 11 },
+        { position: [6, 2.5, -4.5], color: "#ffd6a8", intensity: 9, distance: 11 },
       ],
       environment: { file: "/hdri/potsdamer_platz_1k.hdr", intensity: 0.45, rotationY: 0 },
       fog: { color: "#6c7392", density: 0.0011 },

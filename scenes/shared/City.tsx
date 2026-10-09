@@ -99,11 +99,11 @@ export function City({
         void main() {
           vec3 scale = vec3(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz), length(instanceMatrix[2].xyz));
           vec3 p = position * scale;
-          // UV métriques : une trame de 32 étages × 16 travées couvre 112 m × 56 m.
+          // UV métriques : une trame de 32 étages × 16 travées couvre 56 m × 28 m.
           if (abs(normal.x) > 0.5) vUv = vec2(p.z, p.y);
           else if (abs(normal.z) > 0.5) vUv = vec2(p.x, p.y);
           else vUv = vec2(p.x, p.z);
-          vUv /= vec2(56.0, 112.0);
+          vUv /= vec2(28.0, 56.0);
           vSeed = fract(sin(float(gl_InstanceID) * 12.9898) * 43758.5453);
           vUv += vec2(vSeed * 7.0, floor(vSeed * 13.0) / 32.0);
           vRoof = step(0.5, normal.y);

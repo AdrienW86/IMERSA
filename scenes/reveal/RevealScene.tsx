@@ -64,7 +64,7 @@ function StudioFloor() {
             float d = length(vWorld.xz - vec2(-4.0, -1.5));
             float fade = 1.0 - smoothstep(12.0, 70.0, d);
             float lines = grid(vWorld.xz, 1.0, 1.0) * 0.18 + grid(vWorld.xz, 5.0, 1.2) * 0.35;
-            gl_FragColor = vec4(uColor * lines, lines * fade * 0.55);
+            gl_FragColor = vec4(uColor * lines, lines * fade * 0.9);
           }
         `,
       }),
