@@ -99,7 +99,7 @@ export const sceneDefinitions: readonly SceneDefinition[] = [
       match: { cut: "flamme", from: GITE_FLAME, to: CHATEAU_FLAME },
     },
     assets: {
-      models: ["/models/sheen-chair.glb", "/models/iridescent-dish-with-olives.glb"],
+      models: ["/models/sheen-chair.glb"],
       textures: ["stone", "terracotta", "oldwood", "plaster", "linen"],
     },
   },

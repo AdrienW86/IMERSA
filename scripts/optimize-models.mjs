@@ -29,10 +29,7 @@ const SOURCES = {
   GlamVelvetSofa: "glam-velvet-sofa",
   SheenChair: "sheen-chair",
   ChairDamaskPurplegold: "chair-damask-purplegold",
-  SpecularSilkPouf: "specular-silk-pouf",
   GlassVaseFlowers: "glass-vase-flowers",
-  DiffuseTransmissionPlant: "diffuse-transmission-plant",
-  IridescentDishWithOlives: "iridescent-dish-with-olives",
   DiffuseTransmissionTeacup: "diffuse-transmission-teacup",
 };
 

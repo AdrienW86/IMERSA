@@ -320,28 +320,33 @@ function voronoi(u, v, cells, seed, stretch = 1) {
 /** Mur de pierre provençal : moellons irréguliers, joints à la chaux. */
 function stone(size) {
   const m = makeMaps(size);
-  const tones = ["#c4a983", "#a98d6b", "#d3bf9b", "#9a8166", "#bba07a", "#8f7c66", "#cdb895", "#b39472"].map(hex);
-  const mortar = hex("#cfc3ad");
+  // Moellons calcaires clairs, joints beurrés à la chaux (mas provençal) :
+  // la pierre affleure à peine du mortier, contrastes doux.
+  const tones = ["#d8c6a6", "#cbb795", "#e0d1b4", "#c2ab88", "#d2bf9e", "#bfa98a", "#dccbab", "#c9b08d"].map(hex);
+  const mortar = hex("#e6dccb");
   forEachPixel(size, (_x, _y, u, v, i) => {
-    const w = fbm(u, v, 4, 3, 101) * 0.05;
-    const { edge, id } = voronoi(mod(u + w, 1), mod(v + w * 0.7, 1), 8, 102, 0.42);
+    const w = fbm(u, v, 5, 3, 101) * 0.07;
+    const { edge, id } = voronoi(mod(u + w, 1), mod(v + w * 0.7, 1), 15, 102, 0.5);
     const tone = tones[id % tones.length];
-    const n = fbm(u, v, 16, 5, 103) * 0.5 + 0.5;
-    const pits = smooth(0.62, 0.75, fbm(u, v, 48, 2, 104) * 0.5 + 0.5);
-    const face = smooth(0.015, 0.06, edge + (n - 0.5) * 0.05);
-    const bulge = smooth(0.0, 0.35, edge);
+    const n = fbm(u, v, 20, 5, 103) * 0.5 + 0.5;
+    const pits = smooth(0.64, 0.78, fbm(u, v, 56, 2, 104) * 0.5 + 0.5);
+    // Bord irrégulier : le mortier déborde sur la pierre par endroits.
+    const spill = fbm(u, v, 28, 3, 108) * 0.09;
+    const face = smooth(0.03, 0.09, edge + spill + (n - 0.5) * 0.04);
+    const bulge = smooth(0.0, 0.4, edge);
     const grainy = fbm(u, v, 96, 2, 107) * 0.5 + 0.5;
-    let c = mix3(tone, mix3(tone, [0.05, 0.04, 0.03], 0.45), (1 - n) * 0.55 + pits * 0.3 + (1 - grainy) * 0.15);
-    c = mix3(c, mix3(c, [1, 0.97, 0.9], 0.3), bulge * 0.25);
-    const lichen = smooth(0.7, 0.85, fbm(u, v, 6, 3, 105) * 0.5 + 0.5) * 0.25;
-    c = mix3(c, hex("#8a8a64"), lichen);
-    const mort = mix3(mortar, mix3(mortar, [0.35, 0.3, 0.25], 0.5), fbm(u, v, 64, 2, 106) * 0.4 + 0.3);
-    const ao = smooth(0.0, 0.2, edge);
+    let c = mix3(tone, mix3(tone, [0.32, 0.27, 0.21], 0.4), (1 - n) * 0.4 + pits * 0.25 + (1 - grainy) * 0.12);
+    const lichen = smooth(0.74, 0.88, fbm(u, v, 6, 3, 105) * 0.5 + 0.5) * 0.18;
+    c = mix3(c, hex("#9a9472"), lichen);
+    const mort = mix3(mortar, mix3(mortar, [0.55, 0.5, 0.44], 0.5), fbm(u, v, 64, 3, 106) * 0.35 + 0.25);
     const col = mix3(mort, c, face);
-    const shade = 0.86 + 0.14 * ao;
-    m.albedo.set([col[0] * shade, col[1] * shade, col[2] * shade], i * 3);
-    m.rough[i] = clamp01(0.88 + (1 - face) * 0.08);
-    m.height[i] = face * 0.5 + bulge * 0.45 + n * 0.1 - pits * 0.06;
+    // Badigeon de chaux irrégulier qui unifie le mur.
+    const wash = smooth(0.45, 0.8, fbm(u, v, 4, 4, 109) * 0.5 + 0.5) * 0.22;
+    const fin = mix3(col, mortar, wash);
+    const shade = 0.93 + 0.07 * smooth(0.0, 0.15, edge);
+    m.albedo.set([fin[0] * shade, fin[1] * shade, fin[2] * shade], i * 3);
+    m.rough[i] = clamp01(0.86 + (1 - face) * 0.1);
+    m.height[i] = face * 0.35 + bulge * 0.3 + n * 0.12 - pits * 0.05;
   });
   return m;
 }
@@ -433,7 +438,7 @@ const jobs = [
   ["oak", () => oak(SIZE), 6],
   ["travertine", () => travertine(SIZE), 14],
   ["concrete", () => concrete(SIZE), 30],
-  ["stone", () => stone(SIZE), 8],
+  ["stone", () => stone(SIZE), 5],
   ["terracotta", () => terracotta(SIZE), 6],
   ["oldwood", () => oldwood(SIZE), 6],
   ["linen", () => linen(SIZE), 3],

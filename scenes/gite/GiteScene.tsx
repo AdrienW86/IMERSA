@@ -7,7 +7,7 @@ import { usePbrTextures } from "@/hooks/usePbrTextures";
 import { at, lathe, merge, slab } from "@/lib/geometry";
 import { GITE_FLAME, GITE_GLASS } from "@/scenes/anchors";
 import { FireSlot } from "@/scenes/shared/Fire";
-import { Books, CeramicPendant, DiningChair, ModularSofa, OliveTree, Vase } from "@/scenes/shared/furniture";
+import { Books, Bowl, CeramicPendant, DiningChair, ModularSofa, OliveTree, Vase } from "@/scenes/shared/furniture";
 import { Candle, FLAME_HEIGHT } from "@/scenes/shared/hero/Candle";
 import { GLASS_BOWL_CENTER, WineGlass } from "@/scenes/shared/hero/WineGlass";
 import { Model } from "@/scenes/shared/Model";
@@ -45,7 +45,7 @@ function useGiteMaterials() {
   const linen = usePbrTextures("linen", 0.8);
   return useDisposable(
     () => ({
-      stone: new MeshStandardMaterial({ ...stone, color: new Color("#e9d8bd"), roughness: 1, normalScale: new Vector2(1.6, 1.6) }),
+      stone: new MeshStandardMaterial({ ...stone, color: new Color("#f4ece0"), roughness: 1, normalScale: new Vector2(1.1, 1.1) }),
       floor: new MeshPhysicalMaterial({ ...tiles, color: new Color("#ffffff"), roughness: 1, clearcoat: 0.15, clearcoatRoughness: 0.5 }),
       beam: new MeshStandardMaterial({ ...beam, color: new Color("#ffffff"), roughness: 1 }),
       beamAcross: new MeshStandardMaterial({ ...beamAcross, color: new Color("#ffffff"), roughness: 1 }),
@@ -238,7 +238,7 @@ function FarmTable({ m }: { m: GiteMaterials }) {
         <mesh geometry={g.bottle} material={m.bottle} position={[-0.12, TABLE.top, -0.75]} castShadow />
         <mesh geometry={g.board} material={m.beam} position={[0.05, TABLE.top + 0.012, 0.75]} rotation-y={0.3} castShadow receiveShadow />
         <Vase position={[-0.2, TABLE.top, 0.15]} scale={0.9} color="#b9744d" roughness={0.8} profile="pitcher" />
-        <Model url="/models/iridescent-dish-with-olives.glb" position={[-0.08, TABLE.top, 0.48]} scale={0.7} />
+        <Bowl position={[-0.08, TABLE.top, 0.48]} radius={0.15} color="#d6c6a8" />
       </group>
       <WineGlass position={[GITE_GLASS[0], TABLE.top, GITE_GLASS[2]]} />
       <CeramicPendant position={[TABLE.x, 2.15, TABLE.z]} drop={H - 0.6 - 2.15 - 0.2} radius={0.32} color="#b38b5e" />
