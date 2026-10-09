@@ -1,177 +1,173 @@
-import type { SceneDefinition } from "@/types/experience";
+import type { CameraKeyframe, SceneDefinition } from "@/types/experience";
+import {
+  CHATEAU_CURTAIN,
+  CHATEAU_FLAME,
+  GITE_FLAME,
+  GITE_GLASS,
+  VILLA_CURTAIN,
+  VILLA_GLASS,
+  cutCamera,
+  cutTarget,
+  matchCuts,
+  type MatchCut,
+} from "./anchors";
 
 /**
- * Configuration centralisée du parcours.
+ * Configuration centralisée du parcours : trois univers reliés par trois
+ * raccords sur objet (verre, flamme, voilage), puis le final.
  *
- * Toutes les coordonnées sont exprimées en mètres, dans le repère local de
- * chaque séquence (Y vers le haut). Le dernier point de passage d'une séquence
- * et le premier de la suivante désignent le même lieu physique : le passage
- * (seuil) où s'opère la bascule. L'origine de chaque séquence dans le monde est
- * calculée à partir de cette contrainte (voir lib/journey.ts).
+ * Coordonnées en mètres, dans le repère local de chaque scène. Le dernier
+ * point de passage d'une scène et le premier de la suivante sont les mêmes
+ * positions relatives à l'objet repère : l'origine monde de chaque scène en
+ * est déduite (voir lib/journey.ts).
  */
 
 const EYE = 1.62;
 
+/** Point de passage « coupe » : caméra dans l'axe de l'objet repère. */
+function cut(t: number, anchor: readonly [number, number, number], m: MatchCut): CameraKeyframe {
+  return { t, position: cutCamera(anchor, m), target: cutTarget(anchor, m), fov: m.fov, still: true };
+}
+
+const SHARED_VILLA_LIGHT = {
+  sun: { color: "#ffb06a", intensity: 4.6, position: [-30, 5.5, 7] as const, shadowRadius: 12 },
+  hemisphere: { sky: "#a9bad0", ground: "#a4805e", intensity: 0.45 },
+  environment: { file: "/hdri/venice_sunset_1k.hdr", intensity: 0.65, rotationY: 1.4 },
+  fog: { color: "#efc9a2", density: 0.0012 },
+};
+
 export const sceneDefinitions: readonly SceneDefinition[] = [
   {
     id: "villa",
-    label: "Villa contemporaine",
-    weight: 1.25,
-    keyframes: [
-      { t: 0, position: [2.6, EYE, 5.6], target: [-6.5, 1.2, 0.6], fov: 52, stop: true },
-      { t: 0.2, position: [1.7, EYE, 2.8], target: [-6.8, 1.25, -1.8], fov: 52 },
-      { t: 0.42, position: [0.1, EYE, -1.3], target: [-4.5, 1.5, -9.5], fov: 54 },
-      { t: 0.6, position: [-2.1, EYE, -4.7], target: [2.0, 1.45, -9.0], fov: 54, stop: true },
-      { t: 0.82, position: [1.2, EYE, -8.1], target: [3.4, 1.6, -13.5], fov: 52 },
-      { t: 1, position: [3.4, EYE, -13.4], target: [3.4, 1.62, -20], fov: 54 },
-    ],
-    lighting: {
-      sun: { color: "#ffdcb0", intensity: 5.2, position: [-18, 14, 22], shadowRadius: 14 },
-      hemisphere: { sky: "#cfe0f0", ground: "#a88b6c", intensity: 0.35 },
-      practicals: [
-        { position: [2.6, 0.6, -2.5], color: "#ff9a4a", intensity: 4, distance: 6 },
-        { position: [-4.4, 2.6, -7.4], color: "#ffcf96", intensity: 3, distance: 6 },
-      ],
-      environment: { file: "/hdri/venice_sunset_1k.hdr", intensity: 0.6, rotationY: 1.4 },
-      fog: { color: "#e6dccd", density: 0.0008 },
-      bloom: 0.35,
-    },
-    exit: { kind: "threshold", halfWidth: 0.022, veil: "#07080a", veilPeak: 1 },
-    assets: {
-      models: [
-        "/models/glam-velvet-sofa.glb",
-        "/models/sheen-chair.glb",
-        "/models/specular-silk-pouf.glb",
-        "/models/glass-vase-flowers.glb",
-        "/models/diffuse-transmission-plant.glb",
-        "/models/glass-hurricane-candle-holder.glb",
-      ],
-      textures: ["concrete", "travertine", "oak", "plaster"],
-    },
-  },
-  {
-    id: "loft",
-    label: "Loft urbain",
+    label: "Villa méditerranéenne",
     weight: 1.15,
     keyframes: [
-      { t: 0, position: [0, EYE, 9.6], target: [0, 1.62, 3], fov: 54 },
-      { t: 0.16, position: [0.4, EYE, 4.6], target: [2.4, 3.6, -6], fov: 56 },
-      { t: 0.36, position: [3.9, 1.7, -0.6], target: [-2.2, 3.2, -5.2], fov: 56, stop: true },
-      { t: 0.55, position: [2.3, 2.3, -7.4], target: [-2.4, 3.8, -3.0], fov: 56 },
-      { t: 0.72, position: [0.3, 4.4, -5.9], target: [-4.6, 6.0, -4.6], fov: 56 },
-      { t: 0.86, position: [-4.2, 4.5 + EYE, -4.3], target: [-5.6, 6.1, -12], fov: 54 },
-      { t: 1, position: [-5.6, 4.5 + EYE, -14.4], target: [-5.6, 6.12, -22], fov: 54 },
+      { t: 0, position: [2.2, 1.6, 6.2], target: [-6.5, 1.2, 1.2], fov: 52, stop: true },
+      { t: 0.3, position: [0.7, 1.5, 4.9], target: [-6, 1.05, 1.4], fov: 50 },
+      { t: 0.58, position: [-0.3, 1.15, 1.6], target: [-3.0, 0.55, 2.4], fov: 44, stop: true },
+      { t: 0.82, position: [-1.7, 0.62, 2.36], target: VILLA_GLASS, fov: 36 },
+      cut(1, VILLA_GLASS, matchCuts.verre),
     ],
     lighting: {
-      sun: { color: "#ffb36b", intensity: 3.8, position: [30, 11, 6], shadowRadius: 16 },
-      hemisphere: { sky: "#b4c3d4", ground: "#6a5040", intensity: 0.65 },
+      ...SHARED_VILLA_LIGHT,
       practicals: [
-        { position: [5.2, 2.6, -6], color: "#ffbf7a", intensity: 6, distance: 7 },
-        { position: [-6, 3, 3.5], color: "#ffb070", intensity: 3, distance: 6 },
+        { position: [2.15, 0.7, -2.9], color: "#ff9a4a", intensity: 4, distance: 6 },
+        { position: [-4.4, 1.9, -7.4], color: "#ffd29a", intensity: 4, distance: 6 },
       ],
-      environment: { file: "/hdri/empty_warehouse_01_1k.hdr", intensity: 0.8, rotationY: 0 },
-      fog: { color: "#c9a888", density: 0.004 },
-      bloom: 0.45,
+      bloom: 0.55,
     },
-    exit: { kind: "threshold", halfWidth: 0.022, veil: "#07080a", veilPeak: 1 },
+    exit: {
+      kind: "match",
+      halfWidth: 0.012,
+      veil: "#000000",
+      veilPeak: 0,
+      match: { cut: "verre", from: VILLA_GLASS, to: GITE_GLASS },
+    },
     assets: {
-      models: [
-        "/models/sheen-wood-leather-sofa.glb",
-        "/models/sheen-chair.glb",
-        "/models/diffuse-transmission-plant.glb",
-      ],
-      textures: ["brick", "concrete", "oak", "facade"],
+      models: ["/models/sheen-chair.glb"],
+      textures: ["travertine", "oak", "plaster", "boucle", "linen"],
     },
   },
   {
-    id: "penthouse",
-    label: "Penthouse panoramique",
-    weight: 1.05,
+    id: "gite",
+    label: "Mas provençal",
+    weight: 1.25,
     keyframes: [
-      { t: 0, position: [-6, EYE, 6.6], target: [-6, 1.62, 0], fov: 54 },
-      { t: 0.2, position: [-5.3, EYE, 1.0], target: [0.5, 1.4, -12], fov: 54 },
-      { t: 0.45, position: [-1.6, EYE, -4.6], target: [6.5, 1.2, -14], fov: 52 },
-      { t: 0.68, position: [3.3, 1.6, -9.2], target: [9.5, 0.2, -32], fov: 46, stop: true },
-      { t: 0.84, position: [4.6, 1.6, -10.8], target: [11, 0.6, -42], fov: 42 },
-      { t: 1, position: [5.4, 1.75, -14.6], target: [9, 1.8, -42], fov: 46 },
+      cut(0, GITE_GLASS, matchCuts.verre),
+      { t: 0.2, position: [-0.5, 1.25, 0.7], target: [-3.6, 1.05, -0.5], fov: 44 },
+      { t: 0.42, position: [2.4, EYE, 2.7], target: [-1.8, 1.25, -1.4], fov: 52, stop: true },
+      { t: 0.66, position: [2.5, 1.66, 0.6], target: [1.3, 1.45, -4.6], fov: 46 },
+      { t: 0.84, position: [1.66, 1.74, -3.5], target: GITE_FLAME, fov: 36 },
+      cut(1, GITE_FLAME, matchCuts.flamme),
     ],
     lighting: {
-      sun: { color: "#ff9e6b", intensity: 1.6, position: [-8, 5, -40], shadowRadius: 14 },
-      hemisphere: { sky: "#8296bf", ground: "#4a4048", intensity: 0.8 },
+      sun: { color: "#ffaa66", intensity: 6.5, position: [-30, 7, -9], shadowRadius: 9 },
+      hemisphere: { sky: "#b8a58c", ground: "#5e4330", intensity: 0.22 },
       practicals: [
-        { position: [-6.4, 2.5, -4], color: "#ffcf9a", intensity: 9, distance: 11 },
-        { position: [6, 2.5, -4.5], color: "#ffd6a8", intensity: 9, distance: 11 },
+        { position: [1.0, 0.5, -4.3], color: "#ff8a3a", intensity: 6, distance: 5 },
+        { position: [GITE_FLAME[0], GITE_FLAME[1] + 0.1, GITE_FLAME[2] + 0.9], color: "#ffb36a", intensity: 0.6, distance: 3 },
       ],
-      environment: { file: "/hdri/potsdamer_platz_1k.hdr", intensity: 0.45, rotationY: 0 },
-      fog: { color: "#6c7392", density: 0.0011 },
-      bloom: 0.8,
+      environment: { file: "/hdri/lebombo_1k.hdr", intensity: 0.32, rotationY: 0 },
+      fog: { color: "#e6c49c", density: 0.0025 },
+      bloom: 0.7,
     },
-    exit: { kind: "light", halfWidth: 0.026, veil: "#f6ecdf", veilPeak: 1 },
+    exit: {
+      kind: "match",
+      halfWidth: 0.012,
+      veil: "#000000",
+      veilPeak: 0,
+      match: { cut: "flamme", from: GITE_FLAME, to: CHATEAU_FLAME },
+    },
     assets: {
-      models: ["/models/glam-velvet-sofa.glb", "/models/sheen-chair.glb", "/models/specular-silk-pouf.glb"],
-      textures: ["marble-warm", "plaster", "oak", "facade"],
+      models: ["/models/sheen-chair.glb"],
+      textures: ["stone", "terracotta", "oldwood", "plaster", "linen"],
     },
   },
   {
     id: "chateau",
     label: "Château",
-    weight: 1.5,
+    weight: 1.6,
     keyframes: [
-      { t: 0, position: [0, EYE, 13.5], target: [0, 2.4, 0], fov: 56 },
-      { t: 0.14, position: [0.5, EYE, 4.5], target: [0, 4.2, -20], fov: 56 },
-      { t: 0.34, position: [-1.4, EYE, -11], target: [1, 8.2, -30], fov: 60, stop: true },
-      { t: 0.55, position: [1, EYE, -29], target: [0, 3.8, -62], fov: 54 },
-      { t: 0.72, position: [0, 1.9, -47], target: [0, 6.2, -78], fov: 58, stop: true },
-      { t: 0.87, position: [0, 2 + EYE, -64], target: [0, 7.4, -84], fov: 58 },
-      { t: 1, position: [0, 4 + EYE, -70.5], target: [0, 9.5, -84], fov: 62 },
+      cut(0, CHATEAU_FLAME, matchCuts.flamme),
+      { t: 0.1, position: [16.95, 1.95, -4.35], target: [17.6, 2.25, -6.2], fov: 40 },
+      { t: 0.24, position: [20.8, 2.15, 2.6], target: [16.8, 2.0, -5.2], fov: 52, stop: true },
+      { t: 0.37, position: [15.0, 1.7, 1.6], target: [6, 2.2, 0], fov: 52 },
+      { t: 0.47, position: [9.0, 1.65, 0.2], target: [-20, 3.2, 0], fov: 56 },
+      { t: 0.64, position: [-14, 1.65, -1.0], target: [-32, 7.2, 1.0], fov: 60, stop: true },
+      { t: 0.8, position: [-47, 1.8, 0], target: [-76, 6.0, 0], fov: 56 },
+      { t: 0.9, position: [-64, 2 + EYE, 0], target: [-84, 6.4, 0], fov: 52 },
+      cut(1, CHATEAU_CURTAIN, matchCuts.rideau),
     ],
     lighting: {
-      sun: { color: "#ffe6c4", intensity: 3.6, position: [-30, 24, -8], shadowRadius: 22 },
-      hemisphere: { sky: "#e8dccb", ground: "#6b5640", intensity: 0.45 },
+      sun: { color: "#ffd2a0", intensity: 2.8, position: [-8, 24, 30], shadowRadius: 18 },
+      hemisphere: { sky: "#e6d6c0", ground: "#5e4a36", intensity: 0.3 },
       practicals: [
-        { position: [0, 7.4, -15], color: "#ffc27a", intensity: 18, distance: 18 },
-        { position: [0, 7.4, -35], color: "#ffc27a", intensity: 18, distance: 18 },
+        { position: [17.6, 2.2, -4.2], color: "#ffb36a", intensity: 0.8, distance: 3 },
+        { position: [18, 3.6, 0], color: "#ffd29a", intensity: 6, distance: 9 },
       ],
-      environment: { file: "/hdri/venice_sunset_1k.hdr", intensity: 0.55, rotationY: 0 },
-      fog: { color: "#d9c7ae", density: 0.006 },
-      bloom: 0.7,
+      environment: { file: "/hdri/lebombo_1k.hdr", intensity: 0.42, rotationY: 0 },
+      fog: { color: "#e2cdb0", density: 0.004 },
+      bloom: 0.75,
     },
-    exit: { kind: "dissolve", halfWidth: 0.026, veil: "#0a0c10", veilPeak: 1 },
-    assets: {
-      models: ["/models/chair-damask-purplegold.glb"],
-      textures: ["marble-white", "marble-black", "marble-warm", "travertine", "plaster"],
-    },
-  },
-  {
-    id: "reveal",
-    label: "Révélation IMERSA",
-    weight: 1.05,
-    keyframes: [
-      { t: 0, position: [0.6, EYE, 0.8], target: [-6.5, 1.3, -1.2], fov: 54 },
-      { t: 0.24, position: [1.6, 3.8, 4.6], target: [-3, 0.9, -2.5], fov: 54 },
-      { t: 0.55, position: [12, 11, 19], target: [-3.5, 0, -2], fov: 46 },
-      { t: 0.82, position: [21, 15.5, 27], target: [-4.2, -0.5, -1.8], fov: 42, stop: true },
-      { t: 1, position: [22, 16, 28.5], target: [-4.2, -0.4, -1.8], fov: 42 },
-    ],
-    lighting: {
-      sun: { color: "#fff1e0", intensity: 2.4, position: [-18, 30, 14], shadowRadius: 24 },
-      hemisphere: { sky: "#9fb4d6", ground: "#1b1d22", intensity: 0.5 },
-      practicals: [
-        { position: [-3, 6, -2], color: "#8fd0ff", intensity: 0, distance: 1 },
-        { position: [6, 4, 8], color: "#ffd2a0", intensity: 0, distance: 1 },
-      ],
-      environment: { file: "/hdri/venice_sunset_1k.hdr", intensity: 0.6, rotationY: 1.4 },
-      fog: { color: "#0b0e13", density: 0.006 },
-      bloom: 0.6,
+    exit: {
+      kind: "match",
+      halfWidth: 0.012,
+      veil: "#000000",
+      veilPeak: 0,
+      match: { cut: "rideau", from: CHATEAU_CURTAIN, to: VILLA_CURTAIN },
     },
     assets: {
       models: [
+        "/models/chair-damask-purplegold.glb",
         "/models/glam-velvet-sofa.glb",
-        "/models/sheen-chair.glb",
-        "/models/specular-silk-pouf.glb",
-        "/models/diffuse-transmission-plant.glb",
+        "/models/diffuse-transmission-teacup.glb",
+        "/models/glass-vase-flowers.glb",
       ],
-      textures: ["concrete", "travertine", "oak", "plaster"],
+      textures: ["marble-white", "marble-black", "marble-warm", "travertine", "plaster", "oak"],
+    },
+  },
+  {
+    id: "finale",
+    label: "IMERSA",
+    weight: 0.75,
+    keyframes: [
+      cut(0, VILLA_CURTAIN, matchCuts.rideau),
+      { t: 0.28, position: [-6.15, EYE, 1.75], target: [-14, 1.3, 1.0], fov: 44 },
+      { t: 0.52, position: [-8.1, 1.6, 0.9], target: [-40, 0.8, -3], fov: 46 },
+      { t: 0.8, position: [-9.0, EYE, 0.5], target: [-90, 1.0, -14], fov: 42, stop: true },
+      { t: 1, position: [-9.15, 1.66, 0.6], target: [-90, 1.2, -15], fov: 41 },
+    ],
+    lighting: {
+      ...SHARED_VILLA_LIGHT,
+      practicals: [
+        { position: [2.15, 0.7, -2.9], color: "#ff9a4a", intensity: 4, distance: 6 },
+        { position: [-4.4, 1.9, -7.4], color: "#ffd29a", intensity: 4, distance: 6 },
+      ],
+      bloom: 0.6,
+    },
+    assets: {
+      models: ["/models/sheen-chair.glb"],
+      textures: ["travertine", "oak", "plaster", "boucle", "linen"],
     },
   },
 ];

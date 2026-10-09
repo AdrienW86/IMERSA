@@ -1,7 +1,7 @@
 # Architecture de l’expérience immersive
 
 Ce document décrit le fonctionnement du moteur de la page d’accueil : comment le scroll pilote la caméra, comment les
-environnements sont chargés, affichés et libérés, et comment les transitions masquent les changements techniques.
+environnements sont chargés, affichés et libérés, et comment les raccords sur objet relient les lieux.
 
 ## Vue d’ensemble
 
@@ -73,18 +73,45 @@ lumières ponctuelles d’appoint. Leur nombre ne change jamais, donc **aucun sh
 transition ; seuls les paramètres sont interpolés (couleurs, intensités, brouillard, intensité de l’environnement,
 halo). La caméra d’ombre suit la zone regardée, alignée sur la grille de texels pour éviter le scintillement.
 
-## Transitions
+## Transitions : raccords sur objet (`scenes/anchors.ts`)
 
-Chaque frontière déclare un type (`threshold`, `light`, `dissolve`), une demi-largeur et un voile :
+Les trois frontières sont des **raccords dans l'axe** (« match cut ») sur un objet repère présent dans les deux lieux
+(verre, bougie, voilage). La direction artistique de ces raccords est décrite dans
+[DIRECTION_ARTISTIQUE.md](./DIRECTION_ARTISTIQUE.md).
 
-| Frontière             | Principe                                                                                  |
-| --------------------- | ----------------------------------------------------------------------------------------- |
-| Villa → Loft          | Couloir sombre en chêne fumé, reproduit à l’identique des deux côtés du seuil (raccord architectural), changement progressif de lumière (lumière méditerranéenne → fin d’après-midi industrielle). |
-| Loft → Penthouse      | La caméra gravit l’escalier hélicoïdal jusqu’à la mezzanine et emprunte un passage sombre : sensation d’élévation. |
-| Penthouse → Château   | La caméra sort sur la terrasse face au couchant ; la lumière envahit l’image (voile lumineux) puis se dissipe dans le vestibule du château. |
-| Château → Révélation  | Au sommet de l’escalier d’honneur, face à la grande baie, l’image se dissout dans le noir et réapparaît à l’intérieur du jumeau numérique de la villa. |
+- **Même cadre de part et d'autre.** `matchCuts` définit, pour chaque raccord, la position de la caméra relative à
+  l'objet (`offset`) et la focale (`fov`). `cutCamera()` et `cutTarget()` en déduisent le dernier point de passage de
+  la scène A et le premier de la scène B. Comme ils désignent le même point physique, `resolveScenes()` place l'origine
+  de B de façon à superposer les deux objets jumeaux dans l'espace monde.
+- **Temps d'arrêt.** Ces deux points de passage sont marqués `still` : la tangente de la spline y est nulle. La caméra
+  ralentit jusqu'à l'arrêt sur l'objet, puis repart. La coupe a lieu à vitesse nulle, donc sans saut visible.
+- **Coupe franche.** La transition est de type `match`, avec une demi-largeur de 0,012 et sans voile
+  (`veilPeak: 0`). La visibilité des scènes bascule à l'image exacte du seuil.
+- **Mise au point macro.** `focusAt()` (`lib/journey.ts`) renvoie le point de mise au point et un facteur « macro »
+  qui croît à l'approche d'un raccord. `Effects` règle alors la profondeur de champ chaque image : distance focale =
+  distance à l'objet, plage de netteté réduite à 12 cm et bokeh multiplié. Le décor se fond dans le flou : à la coupe,
+  seules la couleur et la lumière de l'arrière-plan changent.
+- **Éclairage.** Le rig interpole soleil, ambiance et lumières d'appoint entre les deux réglages. Au moment de la
+  coupe, ce sont la lumière de la flamme ou le contre-jour du voilage qui assurent la continuité.
 
-Le voile DOM est calculé à partir de la même progression que la caméra (`veilAt`) : il est parfaitement synchronisé.
+| Raccord | Objet (A → B) | Cadrage à la coupe |
+| ------- | ------------- | ------------------ |
+| Villa → Mas | verre de rosé, table basse → table de ferme | 21 cm de côté, focale 30° |
+| Mas → Château | bougie du manteau → bougie du candélabre | 13 cm de face, focale 28° |
+| Château → Villa (final) | voilage de la grande baie → voilage de lin de la terrasse | 32 cm, focale 40° |
+
+Les sauts volontaires (rail de chapitres, « Passer l'introduction ») utilisent toujours le voile opaque décrit
+plus haut ; `veilAt` reste synchronisé sur la progression de la caméra.
+
+### Stabilité de l'image (écran noir)
+
+Une seule valeur non finie (NaN ou infini) dans le tampon de couleur suffit à noircir toute l'image, car la
+profondeur de champ et le bloom la diffusent. Précautions en place :
+
+- `DustMotes` remplace les `Sparkles` de Drei, dont le fragment shader divise par la distance au centre du point ;
+- la sonde de réflexion utilise une cible 8 bits sRGB, et les verres à transmission sont masqués pendant sa capture ;
+- le verre repère n'utilise pas de transmission physique ;
+- la mise au point lissée est réinitialisée si elle devient non finie.
 
 ## Texte narratif (`animations/narrativeTimeline.ts`)
 
@@ -99,11 +126,11 @@ masques) pour des révélations typographiques ; les blocs cachés sont en `visi
 | ----------------------- | --------- | --------- | -------------- |
 | DPR maximal             | 1,75      | 1,35      | 1,2            |
 | Ombres                  | 2048 px   | 1024 px   | non            |
-| Post-traitement (bloom) | oui, MSAA ×4 | oui, MSAA ×2 | non (tonemapping natif) |
-| Verre à transmission    | oui       | non       | non            |
+| Post-traitement         | oui, MSAA ×4 | oui, MSAA ×2 | non (tonemapping natif) |
+| Profondeur de champ     | complète  | ×0,8      | non            |
+| Sonde de réflexion      | 384 px    | 256 px    | 128 px         |
 | Rayons volumétriques    | oui       | oui       | non            |
-| Ville (tours)           | 1 400     | 900       | 500            |
-| Nuage de points         | 60 000    | 32 000    | 16 000         |
+| Poussière en suspension | 260       | 140       | 60             |
 
 Le niveau initial est déduit de l’appareil (pointeur, taille d’écran, cœurs, mémoire, GPU). Ensuite,
 `PerformanceMonitor` (Drei) réduit d’abord la résolution, puis le niveau de qualité si les FPS chutent.
@@ -113,11 +140,10 @@ Le rendu est suspendu (`frameloop="never"`) lorsque l’expérience sort de l’
 
 | Séquence  | Contenu principal                                                                                          |
 | --------- | ---------------------------------------------------------------------------------------------------------- |
-| Villa     | Séjour de 14 × 19 m, baie panoramique acier, plafond en lames de chêne instanciées, monolithe en travertin avec foyer animé, cuisine, terrasse et piscine à débordement (eau animée), mer, promontoires procéduraux. |
-| Loft      | Double hauteur de 9 m, verrière acier sur toute la façade, brique, poutres, mezzanine vitrée avec bibliothèque, escalier hélicoïdal en chêne et acier, rayons de soleil volumétriques, poussières, ville au couchant. |
-| Penthouse | Angle entièrement vitré à 120 m de hauteur, sol en marbre poli, corniche lumineuse, lampadaire en arc, sculpture, terrasse, ville nocturne (tours instanciées + trame de rues éclairées). |
-| Château   | Galerie de 64 m voûtée en berceau (15,7 m), baies cintrées et miroirs, pilastres et chapiteaux dorés, corniches extrudées, arcs doubleaux, damier de marbre instancié, sept lustres à pampilles, escalier d’honneur impérial avec balustres tournés, colonnes, grande baie et rayons volumétriques, sonde de réflexion. |
-| Révélation| La villa du début, en maquette « coupe » : un balayage transforme son relevé (nuage de points échantillonné sur les surfaces) en espace 3D, puis la caméra s’éloigne. |
+| Villa     | Séjour ouvert sur la mer au couchant : sol en travertin, baie acier avec porte-fenêtre ouverte et voilage de lin, monolithe en travertin avec foyer, canapé modulable en bouclette, table basse (bol, livres, verre de rosé), table de repas en chêne sous suspensions céramique, oliviers, terrasse et piscine à débordement, mer et promontoires. |
+| Mas       | Salle commune d'un mas provençal : murs en moellons à joints beurrés, charpente en vieux chêne, tomettes, fenêtre à volets ouverte sur les cyprès et la lavande, cheminée de pierre (feu, bougie sur le manteau), table de ferme (verre, bouteille, coupe en céramique, pichet), chaises paillées, fauteuils. |
+| Château   | Grand salon à boiseries ivoire et or, cheminée de marbre, miroir doré cintré, candélabres, lustre, croisées avec voilages et velours, canapé de velours, fauteuils damassés ; puis la galerie voûtée et l'escalier d'honneur jusqu'à la grande baie voilée. Sonde de réflexion pour la dorure et les miroirs. |
+| Final     | Retour à la villa par le voilage, recul sur la terrasse au couchant et appel à l'action IMERSA. |
 
 ## Pistes pour aller vers le photoréalisme
 

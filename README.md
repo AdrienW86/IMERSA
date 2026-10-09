@@ -9,10 +9,21 @@ partageables.
 Ce dépôt contient la **première étape** du projet : la page d’accueil immersive, un voyage architectural en 3D temps
 réel piloté par le scroll :
 
-> Villa contemporaine → Loft → Penthouse → Château → Révélation IMERSA
+> Villa sur la mer → Mas provençal → Château → retour à la villa (IMERSA)
+
+Trois univers, reliés par trois **raccords cinématographiques sur objet** : la caméra s'approche d'un objet jusqu'à ce
+qu'il remplisse le cadre, la scène change à l'image près, puis la caméra recule sur l'objet jumeau dans un autre lieu.
+
+| Raccord | De → vers |
+| --- | --- |
+| Le verre | verre de rosé de la villa → même verre sur la table de ferme du mas |
+| La flamme | bougie du mas → bougie du candélabre du château |
+| Le voilage | voilage de la grande baie du château → voilage de lin de la villa |
 
 Chaque environnement est une vraie scène WebGL (géométries, matériaux PBR, lumières, ombres) traversée par une caméra
 dont la trajectoire est commandée par le défilement — pas de vidéo, pas d’image fixe, pas de parallaxe simulée.
+L'analyse des moodboards, la direction artistique et la liste des objets repères sont décrites dans
+[docs/DIRECTION_ARTISTIQUE.md](./docs/DIRECTION_ARTISTIQUE.md).
 
 ---
 
@@ -72,14 +83,17 @@ components/
   forms/                  Formulaire de demande de démonstration
 scenes/
   config.ts               Configuration centralisée : trajectoires, éclairages, transitions, assets
-  villa/ loft/ penthouse/ chateau/ reveal/   Un module par environnement (chargé à la demande)
-  shared/                 Briques réutilisables : passages, ciel, eau, ville, rayons, sonde de réflexion…
+  anchors.ts              Objets repères des raccords (positions, cadrage au moment de la coupe)
+  villa/ gite/ chateau/ finale/   Un module par lieu (chargé à la demande)
+  shared/                 Briques réutilisables : objets repères (verre, bougie, voilage), mobilier,
+                          feu, ciel, eau, poussière, sonde de réflexion…
 animations/               Timeline typographique GSAP synchronisée sur la caméra
 content/                  Contenus éditoriaux (indépendants de la 3D)
 hooks/ lib/ types/        Utilitaires, store, parcours, qualité, géométrie
 public/models|textures|hdri|images
 scripts/                  Génération des textures, optimisation des modèles
 docs/ARCHITECTURE.md      Fonctionnement détaillé du moteur d’expérience
+docs/DIRECTION_ARTISTIQUE.md  Moodboards, univers, objets repères, raccords
 ```
 
 L’architecture détaillée (contrôleur de caméra, transitions, chargement, qualité adaptative) est décrite dans
@@ -88,12 +102,14 @@ L’architecture détaillée (contrôleur de caméra, transitions, chargement, q
 
 ## Ce qui est réellement rendu
 
-- **Architecture et matériaux** : toutes les architectures (murs, baies, voûte, escaliers, moulures, colonnes, lustres,
-  ville…) sont modélisées par code et texturées avec des matériaux PBR **procéduraux originaux** (chêne, travertin,
-  béton ciré, brique, marbres, enduit, façades), générés par `scripts/generate-textures.mjs`.
+- **Architecture et matériaux** : toutes les architectures (baies, charpente, cheminées, boiseries, escalier, lustres…)
+  et une partie du mobilier sont modélisées par code et texturées avec des matériaux PBR **procéduraux originaux**
+  (chêne, vieux chêne, travertin, pierre à joints beurrés, tomettes, lin, bouclette, marbres, enduit), générés par
+  `scripts/generate-textures.mjs`.
 - **Mobilier** : modèles glTF du Khronos Group (Wayfair, CC0 / CC BY 4.0), compressés en Meshopt + WebP.
 - **Lumière** : soleil directionnel avec ombres, éclairage d’ambiance hémisphérique, HDRI Poly Haven (CC0) pour
-  l’éclairage indirect, sonde de réflexion temps réel dans le château, halo (bloom) et tonemapping filmique.
+  l’éclairage indirect, feu et bougies, sonde de réflexion temps réel dans le château, halo (bloom), profondeur de
+  champ pilotée par le parcours (mise au point sur l'objet repère, effet macro aux raccords) et tonemapping filmique.
 
 Le rendu est **soigné mais pas photoréaliste** : il s’agit de 3D temps réel sans éclairage global précalculé ni
 photogrammétrie. Les leviers pour aller plus loin (lightmaps cuites, modèles architecturaux sous licence, textures
@@ -108,7 +124,7 @@ scannées) sont listés dans `docs/ARCHITECTURE.md`.
   parcourir l’animation (menu et lien « Passer l’introduction »).
 - Sans WebGL 2, en cas de perte de contexte, d’erreur de chargement ou de chargement trop long : **parcours
   alternatif** (mêmes chapitres, captures du rendu temps réel).
-- Mobile : qualité réduite (pas de post-traitement ni d’ombres, ville et particules allégées), champ de vision élargi
+- Mobile : qualité réduite (pas de post-traitement ni d’ombres, pas de profondeur de champ, particules allégées), champ de vision élargi
   en portrait, parcours de scroll raccourci, amortissement adapté au tactile.
 
 ## Outils de diagnostic
@@ -128,7 +144,7 @@ Vérifié dans l’environnement de développement (Chromium headless, rendu log
 
 - `npm run typecheck`, `npm run lint`, `npm run build` sans erreur ;
 - chargement réel des modèles, textures et HDRI, compilation des shaders avant affichage ;
-- rendu des cinq environnements, des transitions (passage sombre, voile lumineux, dissolution) ;
+- rendu des trois univers et des trois raccords (image de coupe identique de part et d'autre, aucune image noire) ;
 - scroll dans les deux sens (progression lissée et réversible), saut de chapitre masqué, libération des scènes ;
 - mise en page desktop et mobile portrait, parcours alternatif.
 

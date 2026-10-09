@@ -31,10 +31,9 @@ export interface SceneProps {
 /** Chaque environnement est un module chargé à la demande. */
 const registry: Record<SceneId, ComponentType<SceneProps>> = {
   villa: lazy(() => import("@/scenes/villa/VillaScene")),
-  loft: lazy(() => import("@/scenes/loft/LoftScene")),
-  penthouse: lazy(() => import("@/scenes/penthouse/PenthouseScene")),
+  gite: lazy(() => import("@/scenes/gite/GiteScene")),
   chateau: lazy(() => import("@/scenes/chateau/ChateauScene")),
-  reveal: lazy(() => import("@/scenes/reveal/RevealScene")),
+  finale: lazy(() => import("@/scenes/finale/FinaleScene")),
 };
 
 /** Marges de montage, en progression globale. */

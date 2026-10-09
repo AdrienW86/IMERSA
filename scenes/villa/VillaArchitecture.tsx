@@ -1,21 +1,12 @@
 "use client";
 
-import { useFrame } from "@react-three/fiber";
 import { useLayoutEffect, useRef } from "react";
-import {
-  AdditiveBlending,
-  Color,
-  type InstancedMesh,
-  Matrix4,
-  type Mesh,
-  PlaneGeometry,
-  ShaderMaterial,
-} from "three";
+import { type InstancedMesh, Matrix4, PlaneGeometry } from "three";
 import { useDisposable } from "@/hooks/useDisposable";
 import { at, merge, slab } from "@/lib/geometry";
-import { useExperience } from "@/lib/experience-store";
+import { FireSlot } from "@/scenes/shared/Fire";
 import { Water } from "@/scenes/shared/Water";
-import { EXIT_DOOR, ROOM, SUN_DIRECTION } from "./constants";
+import { EXIT_DOOR, ROOM, SUN_DIRECTION, TERRACE_DOOR } from "./constants";
 import type { VillaMaterials } from "./useVillaMaterials";
 
 const { minX, maxX, minZ, maxZ, height: H } = ROOM;
@@ -23,46 +14,6 @@ const DEPTH = maxZ - minZ;
 const MID_Z = (maxZ + minZ) / 2;
 /** Débord de toiture au-dessus de la terrasse. */
 const EAVE = 1.4;
-
-/** Flammes procédurales du foyer (bruit animé, rendu additif). */
-function FireSlot({ width, height }: { width: number; height: number }) {
-  const reduced = useExperience((s) => s.reducedMotion);
-  const geometry = useDisposable(() => new PlaneGeometry(width, height), [width, height]);
-  const material = useDisposable(
-    () =>
-      new ShaderMaterial({
-        transparent: true,
-        depthWrite: false,
-        blending: AdditiveBlending,
-        toneMapped: false,
-        uniforms: { uTime: { value: 0 }, uColor: { value: new Color("#ff8a3a") } },
-        vertexShader: /* glsl */ `
-          varying vec2 vUv;
-          void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
-        `,
-        fragmentShader: /* glsl */ `
-          uniform float uTime; uniform vec3 uColor; varying vec2 vUv;
-          float h(vec2 p){ return fract(sin(dot(p, vec2(41.3, 289.1))) * 43758.5); }
-          float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
-            return mix(mix(h(i),h(i+vec2(1,0)),f.x), mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x), f.y); }
-          void main() {
-            vec2 p = vec2(vUv.x * 9.0, vUv.y * 2.0 - uTime * 1.6);
-            float f = n(p) * 0.6 + n(p * 2.3 + 3.1) * 0.3 + n(p * 5.1) * 0.1;
-            float shape = smoothstep(1.0, 0.0, vUv.y) * smoothstep(0.0, 0.08, vUv.x) * smoothstep(1.0, 0.92, vUv.x);
-            float flame = smoothstep(0.35, 0.9, f * shape + (1.0 - vUv.y) * 0.35);
-            vec3 col = mix(uColor, vec3(1.0, 0.86, 0.55), flame * flame) * flame * 2.4;
-            gl_FragColor = vec4(col, flame);
-          }
-        `,
-      }),
-    [],
-  );
-  const mesh = useRef<Mesh<PlaneGeometry, ShaderMaterial>>(null);
-  useFrame((_, delta) => {
-    if (!reduced && mesh.current) mesh.current.material.uniforms.uTime.value += Math.min(delta, 0.05);
-  });
-  return <mesh ref={mesh} geometry={geometry} material={material} />;
-}
 
 /** Plafond à lames de chêne (instanciées) sur fond acoustique sombre. */
 function SlatCeiling({ m }: { m: VillaMaterials }) {
@@ -129,11 +80,24 @@ export function VillaArchitecture({ m, model }: { m: VillaMaterials; model: bool
     const step = DEPTH / bays;
     const parts = [];
     for (let i = 0; i <= bays; i++) {
-      parts.push({ geometry: slab(0.12, H, 0.06, 0.005), matrix: at(minX, H / 2, minZ + i * step) });
+      const z = minZ + i * step;
+      if (z > TERRACE_DOOR.z0 + 0.05 && z < TERRACE_DOOR.z1 - 0.05) continue;
+      parts.push({ geometry: slab(0.12, H, 0.06, 0.005), matrix: at(minX, H / 2, z) });
+    }
+    // Montants encadrant la baie ouverte.
+    for (const z of [TERRACE_DOOR.z0, TERRACE_DOOR.z1]) {
+      parts.push({ geometry: slab(0.12, H, 0.08, 0.005), matrix: at(minX, H / 2, z) });
     }
     parts.push({ geometry: slab(0.14, 0.08, DEPTH), matrix: at(minX, 0.04, MID_Z) });
     parts.push({ geometry: slab(0.14, 0.1, DEPTH), matrix: at(minX, H - 0.05, MID_Z) });
-    return { frame: merge(parts), pane: new PlaneGeometry(DEPTH, H - 0.18).rotateY(Math.PI / 2) };
+    // Vitrage interrompu par la baie coulissante ouverte sur la terrasse.
+    const before = TERRACE_DOOR.z0 - minZ;
+    const after = maxZ - TERRACE_DOOR.z1;
+    return {
+      frame: merge(parts),
+      paneA: new PlaneGeometry(before, H - 0.18).rotateY(Math.PI / 2).translate(0, 0, (minZ + TERRACE_DOOR.z0) / 2),
+      paneB: new PlaneGeometry(after, H - 0.18).rotateY(Math.PI / 2).translate(0, 0, (TERRACE_DOOR.z1 + maxZ) / 2),
+    };
   }, []);
 
   // Monolithe en travertin : mur-cheminée autoportant, foyer horizontal.
@@ -212,7 +176,8 @@ export function VillaArchitecture({ m, model }: { m: VillaMaterials; model: bool
       {!model && <SlatCeiling m={m} />}
 
       <mesh geometry={glazing.frame} material={m.steel} castShadow />
-      <mesh geometry={glazing.pane} material={m.glass} position={[minX, H / 2, MID_Z]} renderOrder={2} />
+      <mesh geometry={glazing.paneA} material={m.glass} position={[minX, H / 2, 0]} renderOrder={2} />
+      <mesh geometry={glazing.paneB} material={m.glass} position={[minX, H / 2, 0]} renderOrder={2} />
 
       <mesh geometry={monolith} material={m.stone} castShadow receiveShadow />
       <mesh position={[2.15, 0.44, -3.05]} material={m.ember}>
