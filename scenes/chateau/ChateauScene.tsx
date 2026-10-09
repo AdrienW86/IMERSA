@@ -1,11 +1,11 @@
 "use client";
 
-import { Sparkles } from "@react-three/drei";
 import type { SceneProps } from "@/components/3d/SceneDirector";
 import { useExperience } from "@/lib/experience-store";
 import { LightShafts, type ShaftSource } from "@/scenes/shared/LightShafts";
 import { Model } from "@/scenes/shared/Model";
 import { CHATEAU_CURTAIN } from "@/scenes/anchors";
+import { DustMotes } from "@/scenes/shared/DustMotes";
 import { SheerCurtain } from "@/scenes/shared/hero/SheerCurtain";
 import {
   ReflectionProbe,
@@ -111,16 +111,7 @@ export default function ChateauScene({ settings }: SceneProps) {
           </>
         )}
         {!reduced && settings.particles > 0 && (
-          <Sparkles
-            count={settings.particles}
-            scale={[11, 8, 60]}
-            position={[0, 4, midZ]}
-            size={1.2}
-            speed={0.12}
-            opacity={0.3}
-            color="#ffe9c9"
-            noise={0.5}
-          />
+          <DustMotes count={settings.particles} size={[11, 8, 60]} position={[0, 4, midZ]} />
         )}
       </group>
     </group>

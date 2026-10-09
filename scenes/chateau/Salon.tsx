@@ -56,7 +56,7 @@ export function Salon({
   const local = useDisposable(
     () => ({
       parquet: new MeshStandardMaterial({ ...parquet, color: new Color("#b08060"), roughness: 0.55 }),
-      boiserie: new MeshStandardMaterial({ color: new Color("#efe8da"), roughness: 0.85 }),
+      boiserie: new MeshStandardMaterial({ color: new Color("#ddd2bf"), roughness: 0.85 }),
       velvet: new MeshStandardMaterial({ color: new Color("#5a1320"), roughness: 0.9, side: DoubleSide }),
       rug: new MeshStandardMaterial({ color: new Color("#6b2a2c"), roughness: 1 }),
       rugBorder: new MeshStandardMaterial({ color: new Color("#c7a36a"), roughness: 1 }),

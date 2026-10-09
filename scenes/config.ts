@@ -85,7 +85,7 @@ export const sceneDefinitions: readonly SceneDefinition[] = [
       hemisphere: { sky: "#b8a58c", ground: "#5e4330", intensity: 0.22 },
       practicals: [
         { position: [1.0, 0.5, -4.3], color: "#ff8a3a", intensity: 6, distance: 5 },
-        { position: [GITE_FLAME[0], GITE_FLAME[1] + 0.05, GITE_FLAME[2] + 0.1], color: "#ffb36a", intensity: 1.2, distance: 2.5 },
+        { position: [GITE_FLAME[0], GITE_FLAME[1] + 0.1, GITE_FLAME[2] + 0.9], color: "#ffb36a", intensity: 0.6, distance: 3 },
       ],
       environment: { file: "/hdri/lebombo_1k.hdr", intensity: 0.32, rotationY: 0 },
       fog: { color: "#e6c49c", density: 0.0025 },
@@ -119,13 +119,13 @@ export const sceneDefinitions: readonly SceneDefinition[] = [
       cut(1, CHATEAU_CURTAIN, matchCuts.rideau),
     ],
     lighting: {
-      sun: { color: "#ffd6a8", intensity: 3.8, position: [-8, 24, 30], shadowRadius: 18 },
-      hemisphere: { sky: "#efe1cc", ground: "#6b5640", intensity: 0.45 },
+      sun: { color: "#ffd2a0", intensity: 2.8, position: [-8, 24, 30], shadowRadius: 18 },
+      hemisphere: { sky: "#e6d6c0", ground: "#5e4a36", intensity: 0.3 },
       practicals: [
-        { position: [16.8, 2.0, -5.2], color: "#ffb36a", intensity: 2, distance: 4 },
-        { position: [18, 3.6, 0], color: "#ffd29a", intensity: 10, distance: 10 },
+        { position: [17.6, 2.2, -4.2], color: "#ffb36a", intensity: 0.8, distance: 3 },
+        { position: [18, 3.6, 0], color: "#ffd29a", intensity: 6, distance: 9 },
       ],
-      environment: { file: "/hdri/lebombo_1k.hdr", intensity: 0.55, rotationY: 0 },
+      environment: { file: "/hdri/lebombo_1k.hdr", intensity: 0.42, rotationY: 0 },
       fog: { color: "#e2cdb0", density: 0.004 },
       bloom: 0.75,
     },

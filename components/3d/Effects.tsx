@@ -48,7 +48,7 @@ export function Effects({ settings }: { settings: QualitySettings }) {
     if (!Number.isFinite(state.smoothed.x + state.smoothed.y + state.smoothed.z)) state.smoothed.copy(state.focus.target);
     const distance = Math.max(0.02, camera.position.distanceTo(state.smoothed));
     effect.cocMaterial.focusDistance = distance;
-    effect.cocMaterial.focusRange = MathUtils.lerp(Math.max(2.5, distance * 0.6), 0.05, state.focus.macro);
+    effect.cocMaterial.focusRange = MathUtils.lerp(Math.max(2.5, distance * 0.6), 0.12, state.focus.macro);
     effect.bokehScale = MathUtils.lerp(settings.depthOfField * 0.3, settings.depthOfField * 4.5, state.focus.macro);
   });
 

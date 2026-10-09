@@ -37,7 +37,7 @@ const WIN = {
 const TABLE = { x: GITE_GLASS[0] - 0.33, z: GITE_GLASS[2] + 0.2, top: GITE_GLASS[1] - GLASS_BOWL_CENTER };
 
 function useGiteMaterials() {
-  const stone = usePbrTextures("stone", 2.2);
+  const stone = usePbrTextures("stone", 3.2);
   const tiles = usePbrTextures("terracotta", 1.0);
   const beam = usePbrTextures("oldwood", 1.4);
   const beamAcross = usePbrTextures("oldwood", 1.4, Math.PI / 2);
@@ -45,7 +45,7 @@ function useGiteMaterials() {
   const linen = usePbrTextures("linen", 0.8);
   return useDisposable(
     () => ({
-      stone: new MeshStandardMaterial({ ...stone, color: new Color("#f6e8d2"), roughness: 1, normalScale: new Vector2(1.3, 1.3) }),
+      stone: new MeshStandardMaterial({ ...stone, color: new Color("#e9d8bd"), roughness: 1, normalScale: new Vector2(1.6, 1.6) }),
       floor: new MeshPhysicalMaterial({ ...tiles, color: new Color("#ffffff"), roughness: 1, clearcoat: 0.15, clearcoatRoughness: 0.5 }),
       beam: new MeshStandardMaterial({ ...beam, color: new Color("#ffffff"), roughness: 1 }),
       beamAcross: new MeshStandardMaterial({ ...beamAcross, color: new Color("#ffffff"), roughness: 1 }),
@@ -95,7 +95,7 @@ function Shell({ m }: { m: GiteMaterials }) {
       { geometry: slab(0.3, HEARTH.mantel - 0.1, 0.36), matrix: at(HEARTH.x + HEARTH.width / 2 + 0.15, (HEARTH.mantel - 0.1) / 2, Z0 + 0.18) },
       { geometry: slab(HEARTH.width + 0.6, HEARTH.mantel - HEARTH.height - 0.1, 0.36), matrix: at(HEARTH.x, (HEARTH.height + HEARTH.mantel - 0.1) / 2, Z0 + 0.18) },
       // Hotte en enduit au-dessus du manteau.
-      { geometry: slab(HEARTH.width + 0.4, H - HEARTH.mantel, 0.3), matrix: at(HEARTH.x, (H + HEARTH.mantel) / 2, Z0 + 0.15) },
+      { geometry: slab(HEARTH.width + 0.4, H - HEARTH.mantel, 0.16), matrix: at(HEARTH.x, (H + HEARTH.mantel) / 2, Z0 + 0.08) },
     ]);
     const mantel = slab(HEARTH.width + 0.9, 0.12, 0.42, 0.015);
     return {
