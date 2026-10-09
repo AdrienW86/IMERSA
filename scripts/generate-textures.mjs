@@ -351,7 +351,7 @@ function facade(size) {
     m.albedo.set(c, i * 3);
     m.rough[i] = isGlass ? 0.08 : 0.6;
     m.height[i] = isGlass ? 0 : 0.3;
-    if (isGlass && lit[id] > 0.62) {
+    if (isGlass && lit[id] > 0.72) {
       const w = warmth[id];
       const col = w > 0.3 ? [1, 0.78, 0.5] : [0.75, 0.85, 1];
       const k = (0.4 + 0.6 * lit[id]) * (0.75 + 0.25 * Math.sin(ly * Math.PI));
