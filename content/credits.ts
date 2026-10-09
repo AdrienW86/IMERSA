@@ -1,0 +1,66 @@
+/** Origine et licence de chaque ressource tierce intégrée (voir aussi ASSETS.md). */
+export const credits = [
+  {
+    asset: "Canapé « Glam Velvet Sofa »",
+    file: "public/models/glam-velvet-sofa.glb",
+    author: "Eric Chadwick — Wayfair, LLC",
+    license: "CC BY 4.0",
+    url: "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/GlamVelvetSofa",
+  },
+  {
+    asset: "Fauteuil « Sheen Chair »",
+    file: "public/models/sheen-chair.glb",
+    author: "Eric Chadwick — Wayfair, LLC",
+    license: "CC0 1.0",
+    url: "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/SheenChair",
+  },
+  {
+    asset: "Canapé « Sheen Wood Leather Sofa »",
+    file: "public/models/sheen-wood-leather-sofa.glb",
+    author: "Fran Calvente (modèle, CC0) — Eric Chadwick, Darmstadt Graphics Group (matériaux)",
+    license: "CC BY 4.0 / CC0 1.0",
+    url: "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/SheenWoodLeatherSofa",
+  },
+  {
+    asset: "Fauteuil « Chair Damask Purplegold »",
+    file: "public/models/chair-damask-purplegold.glb",
+    author: "Eric Chadwick — Wayfair",
+    license: "CC BY 4.0",
+    url: "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/ChairDamaskPurplegold",
+  },
+  {
+    asset: "Pouf « Specular Silk Pouf »",
+    file: "public/models/specular-silk-pouf.glb",
+    author: "Eric Chadwick — Wayfair, LLC",
+    license: "CC BY 4.0",
+    url: "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/SpecularSilkPouf",
+  },
+  {
+    asset: "Vase « Glass Vase Flowers »",
+    file: "public/models/glass-vase-flowers.glb",
+    author: "Eric Chadwick (vase), Rico Cilliers (fleurs)",
+    license: "CC0 1.0",
+    url: "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/GlassVaseFlowers",
+  },
+  {
+    asset: "Plante « Diffuse Transmission Plant »",
+    file: "public/models/diffuse-transmission-plant.glb",
+    author: "Rico Cilliers (modèle, CC0) — Eric Chadwick, Darmstadt Graphics Group (matériaux)",
+    license: "CC BY 4.0 / CC0 1.0",
+    url: "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/DiffuseTransmissionPlant",
+  },
+  {
+    asset: "Photophore « Glass Hurricane Candle Holder »",
+    file: "public/models/glass-hurricane-candle-holder.glb",
+    author: "Eric Chadwick — Wayfair, LLC",
+    license: "CC BY 4.0",
+    url: "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/GlassHurricaneCandleHolder",
+  },
+  {
+    asset: "HDRI « Venice Sunset », « Potsdamer Platz », « Empty Warehouse 01 »",
+    file: "public/hdri/*.hdr",
+    author: "Poly Haven (auteurs crédités sur chaque fiche) — copie servie par pmndrs/drei-assets",
+    license: "CC0 1.0",
+    url: "https://polyhaven.com/hdris",
+  },
+] as const;
